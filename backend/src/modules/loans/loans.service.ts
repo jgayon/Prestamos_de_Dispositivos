@@ -25,14 +25,17 @@ export class LoansService {
     }
   }
 
-  createLoan(type: string): Loan {
+  createLoan(type: string): { id: string; state: string } {
     const factory = this.getFactory(type);
     const id = randomUUID();
     const loan = factory.createLoan(id);
 
     this.loans.set(id, loan);
 
-    return loan;
+    return {
+  id: loan.id,
+  state: loan.getState(),
+};
   }
 
   getLoan(id: string): Loan {
@@ -43,28 +46,40 @@ export class LoansService {
     return loan;
   }
 
-  approveLoan(id: string): Loan {
-    const loan = this.getLoan(id);
-    loan.approve();
-    return loan;
-  }
+  approveLoan(id: string) {
+  const loan = this.getLoan(id);
+  loan.approve();
+  return {
+    id: loan.id,
+    state: loan.getState(),
+  };
+}
 
-  deliverLoan(id: string): Loan {
+  deliverLoan(id: string) {
     const loan = this.getLoan(id);
     loan.deliver();
-    return loan;
+    return { 
+      id: loan.id,
+      state: loan.getState(),
+    };
   }
 
-  returnLoan(id: string): Loan {
+  returnLoan(id: string) {
     const loan = this.getLoan(id);
     loan.return();
-    return loan;
+    return {
+      id: loan.id,
+      state: loan.getState(),
+    };
   }
 
-  expireLoan(id: string): Loan {
+  expireLoan(id: string) {
     const loan = this.getLoan(id);
     loan.expire();
-    return loan;
+    return {
+      id: loan.id,
+      state: loan.getState(),
+    };
   }
 
   listLoans(): { id: string; state: string }[] {
