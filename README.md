@@ -55,15 +55,19 @@ Cada tipo tiene su propia fábrica encargada de crear el objeto correspondiente.
 
 ---
 
-## 3. Repository Pattern
+## 3. Composite Pattern
 
-Se utiliza para **separar la lógica de acceso a datos** de la lógica de negocio.
+Se utiliza el patrón Composite para modelar los elementos prestables del sistema.  
+Este patrón permite tratar dispositivos individuales y kits de dispositivos como si fueran el mismo tipo de objeto.
+
+Se define la interfaz `LoanItem` como componente base.  
+Las clases `Device` representan dispositivos individuales (Leaf), mientras que la clase `Kit` actúa como un objeto compuesto (Composite) que puede contener múltiples elementos `LoanItem`.
 
 Esto permite:
 
-- desacoplar la base de datos del dominio
-- facilitar cambios futuros en la persistencia
-- mejorar la mantenibilidad del sistema
+- manejar dispositivos individuales y kits mediante la misma interfaz.
+- construir estructuras jerárquicas de dispositivos.
+- simplificar la lógica del sistema de préstamos al tratar todos los elementos prestables de manera uniforme.
 
 ---
 
@@ -72,28 +76,50 @@ Esto permite:
 El proyecto sigue una arquitectura modular basada en **NestJS**.
 
 src
+
 │
+
 ├── modules
+
 │ └── loans
+
 │ ├── domain
+
 │ │ ├── entities
+
 │ │ ├── states
+
 │ │ └── factory
+
 │ │
+
 │ ├── infrastructure
+
 │ │ └── prisma
+
 │ │
+
 │ ├── dto
+
 │ │
+
 │ ├── loans.controller.ts
+
 │ ├── loans.service.ts
+
 │ └── loans.module.ts
+
 │
+
 ├── prisma
+
 │ └── schema.prisma
+
 │
+
 └── main.ts
 
+---
 
 # Modelo de Base de Datos
 
@@ -111,32 +137,38 @@ model Loan {
   createdAt DateTime @default(now())
 }
 ```
+---
+
 # Instalación del Proyecto
 
 1. Clonar el repositorio
 
+```
 git clone <repo-url>
 cd backend
 
+```
 2. Instalar dependencias
-
+```
 npm install
-
+```
 3. Configurar Prisma
-
+```
 npx prisma generate
-
+```
 4. Ejecutar migraciones
-
+```
 npx prisma migrate dev
-
+```
 5. Iniciar el servidor
-
+```
 npm run start:dev
-
+```
 El servidor iniciará en:
 
 http://localhost:3000
+
+--- 
 
 # Endpoints de la API
 
@@ -145,30 +177,33 @@ http://localhost:3000
 POST /loans
 
 Body:
+```
 {
   "userId": "user1",
   "bookId": "device1",
   "type": "LAPTOP"
 }
-
+```
 Respuesta:
-
+```
 {
   "id": "uuid",
   "state": "REQUESTED"
 }
+```
 ## Listar préstamos
 
 GET /loans
 
 Respuesta:
+```
 [
   {
     "id": "uuid",
     "state": "REQUESTED"
   }
 ]
-
+```
 ## Aprobar préstamo
 
 PATCH /loans/:id/approve
@@ -176,30 +211,30 @@ PATCH /loans/:id/approve
 ## Entregar dispositivo
 
 PATCH /loans/:id/deliver
+
 ## Devolver dispositivo
 
 PATCH /loans/:id/return
+
 ## Expirar préstamo
 
 PATCH /loans/:id/expire
+
+---
 
 # Flujo del Préstamo
 
 El flujo del préstamo sigue el siguiente ciclo:
 
-REQUESTED
-   ↓
-APPROVED
-   ↓
-DELIVERED
-   ↓
-RETURNED
+REQUESTED → APPROVED → DELIVERED → RETURNED
 
 También existe la posibilidad de que un préstamo pase a:
 
 EXPIRED
 
 si no se completa dentro del tiempo establecido.
+
+---
 
 # Pruebas de la API
 
@@ -222,6 +257,8 @@ Las pruebas de los endpoints pueden realizarse utilizando:
 4. Entregar dispositivo
 
 5. Devolver dispositivo
+
+---
 
 # Posibles Mejoras Futuras
 
