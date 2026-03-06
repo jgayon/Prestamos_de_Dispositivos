@@ -30,7 +30,7 @@ export class LoansService {
     }
   }
 
-  async createLoan(type: string): Promise<{ id: string; state: string }> {
+  async createLoan( userId: string, bookId: string, type: string ): Promise<{ id: string; state: string }> {
 
   const factory = this.getFactory(type);
   const id = randomUUID();
@@ -40,8 +40,8 @@ export class LoansService {
 
   await this.loanRepository.createLoan({
     id: id,
-    userId: "user-demo",
-    bookId: "device-demo",
+    userId: userId,
+    bookId: bookId,
     type: type,
     status: loan.getState(),
   });
