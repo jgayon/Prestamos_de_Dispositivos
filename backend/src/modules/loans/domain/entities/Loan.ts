@@ -9,7 +9,14 @@ export class Loan {
   public states: any;
   private currentState: LoanState;
 
-  constructor(public id: string) {
+  // metadata added for demonstration of factory/composite
+  public type?: string;
+  public items?: any[];
+
+  constructor(public id: string, type?: string, items?: any[]) {
+    this.type = type;
+    this.items = items;
+
     this.states = {
       requested: new RequestedState(this),
       approved: new ApprovedState(this),

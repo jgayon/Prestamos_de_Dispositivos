@@ -129,12 +129,14 @@ Modelo principal:
 
 ```prisma
 model Loan {
-  id        String   @id @default(uuid())
-  userId    String
-  bookId    String
-  type      String
-  status    String
-  createdAt DateTime @default(now())
+  id         String   @id @default(uuid())
+  userId     String
+  deviceId   String
+  type       String
+  status     String
+  startDate  DateTime
+  endDate    DateTime
+  createdAt  DateTime @default(now())
 }
 ```
 ---
@@ -180,8 +182,10 @@ Body:
 ```
 {
   "userId": "user1",
-  "bookId": "device1",
-  "type": "LAPTOP"
+  "deviceId": "device1",
+  "type": "LAPTOP",
+  "startDate": "2025-03-10",
+  "endDate": "2025-03-20"
 }
 ```
 Respuesta:
@@ -191,16 +195,23 @@ Respuesta:
   "state": "REQUESTED"
 }
 ```
-## Listar préstamos
 
-GET /loans
+## Listar préstamos (con filtros opcionales)
+
+GET /loans?status=REQUESTED&startDate=2025-03-01&endDate=2025-03-31
 
 Respuesta:
 ```
 [
   {
     "id": "uuid",
-    "state": "REQUESTED"
+    "userId": "user1",
+    "deviceId": "device1",
+    "type": "LAPTOP",
+    "status": "REQUESTED",
+    "startDate": "2025-03-10T00:00:00.000Z",
+    "endDate": "2025-03-20T00:00:00.000Z",
+    "createdAt": "..."
   }
 ]
 ```
@@ -215,6 +226,17 @@ PATCH /loans/:id/deliver
 ## Devolver dispositivo
 
 PATCH /loans/:id/return
+
+## Cambiar estado de préstamo
+
+PATCH /loans/:id/status
+
+Body:
+```
+{ "status": "APPROVED" }
+```
+
+(se siguen manteniendo los endpoints individuales /approve, /deliver, /return, /expire para compatibilidad)
 
 ## Expirar préstamo
 

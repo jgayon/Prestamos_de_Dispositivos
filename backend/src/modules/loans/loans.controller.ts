@@ -1,4 +1,4 @@
-import { Controller, Post, Patch, Param, Body, Get } from '@nestjs/common';
+import { Controller, Post, Patch, Param, Body, Get, UsePipes, ValidationPipe, Query } from '@nestjs/common';
 import { LoansService } from './loans.service';
 import { CreateLoanDto } from './dto/create-loan.dto';
 
@@ -7,19 +7,36 @@ export class LoansController {
   constructor(private readonly loansService: LoansService) {}
 
   @Post()
-  create(
-  @Body('userId') userId: string,
-  @Body('bookId') bookId: string,
-  @Body('type') type: string
-  ) {
-    return this.loansService.createLoan( userId, bookId, type);
+  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+  create(@Body() createLoanDto: CreateLoanDto) {
+    const { userId, deviceId, type, startDate, endDate } = createLoanDto;
+    return this.loansService.createLoan(userId, deviceId, type, new Date(startDate), new Date(endDate));
+  }
+
+  @Get(':id')
+  async getOne(@Param('id') id: string) {
+    return this.loansService.getLoanById(id);
   }
 
   @Get()
-  list() {
-    return this.loansService.listLoans();
+  list(
+    @Query('status') status?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    const filters: any = {};
+    if (status) filters.status = status.toUpperCase();
+    if (startDate) filters.startDate = new Date(startDate);
+    if (endDate) filters.endDate = new Date(endDate);
+    return this.loansService.listLoans(filters);
   }
 
+  @Patch(':id/status')
+  changeStatus(@Param('id') id: string, @Body('status') status: string) {
+    return this.loansService.changeStatus(id, status);
+  }
+
+  // legacy individual endpoints kept for compatibility
   @Patch(':id/approve')
   approve(@Param('id') id: string) {
     return this.loansService.approveLoan(id);

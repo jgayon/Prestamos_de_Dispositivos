@@ -3,7 +3,7 @@ import { Loan } from '../entities/Loan';
 
 export class ChargerLoanFactory implements LoanFactory {
   createLoan(id: string): Loan {
-    const loan = new Loan(id);
+    const loan = new Loan(id, 'CHARGER');
     // reglas específicas del préstamo de cargador
     return loan;
   }

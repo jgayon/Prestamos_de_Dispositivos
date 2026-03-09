@@ -18,7 +18,8 @@ export class KitLoanFactory implements LoanFactory {
 
     console.log("Kit creado con dispositivos:", kit.getItems().length);
 
-    return new Loan(id);
+    // include kit as item metadata so other parts of system can inspect
+    return new Loan(id, 'KIT', kit.getItems());
 
   }
 
