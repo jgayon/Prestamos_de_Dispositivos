@@ -33,22 +33,26 @@ export class LoansService {
   }
 
   async createLoan(
-    userId: string,
-    deviceId: string,
-    type: string,
-    startDate: Date,
-    endDate: Date
-  ): Promise<{ id: string; state: string }> {
+  userId: string,
+  deviceId: string,
+  type: string,
+  startDate: Date,
+  endDate: Date
+): Promise<{ id: string; state: string }> {
 
-    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      throw new BadRequestException('Fechas inválidas');
-    }
+  if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+    throw new BadRequestException('Fechas inválidas');
+  }
 
-    if (endDate <= startDate) {
-      throw new BadRequestException('La fecha de fin debe ser posterior a la de inicio');
-    }
+  if (endDate <= startDate) {
+    throw new BadRequestException('La fecha de fin debe ser posterior a la de inicio');
+  }
 
-    // MICRO: consultar device-service
+  let loanCreated = false;
+  const id = randomUUID();
+
+  try {
+    //Consultar dispositivo (microservicio)
     const device = await firstValueFrom(
       this.deviceClient.send('get_device', { id: deviceId })
     );
@@ -61,10 +65,11 @@ export class LoansService {
       throw new BadRequestException('El dispositivo no está disponible');
     }
 
+    //Crear loan (dominio)
     const factory = this.getFactory(type);
-    const id = randomUUID();
     const loan = factory.createLoan(id);
 
+    //Guardar en DB
     await this.loanRepository.createLoan({
       id,
       userId,
@@ -75,11 +80,13 @@ export class LoansService {
       endDate,
     });
 
-    // MICRO: actualizar estado del device
+    loanCreated = true;
+
+    //Cambiar estado del device
     await firstValueFrom(
       this.deviceClient.send('update_device_status', {
         id: deviceId,
-        status: 'LOANED'
+        status: 'LOANED',
       })
     );
 
@@ -89,17 +96,37 @@ export class LoansService {
       id: loan.id,
       state: loan.getState(),
     };
-  }
 
-  private getLoan(id: string): Loan {
-    const loan = this.loans.get(id);
+  } catch (error) {
 
-    if (!loan) {
-      throw new NotFoundException('Préstamo no encontrado');
+    //ROLLBACK (SAGA)
+
+    console.log('Error en Saga, ejecutando rollback...');
+
+    //Si el loan se creó -> eliminarlo
+    if (loanCreated) {
+      try {
+        await this.loanRepository.deleteLoan(id);
+      } catch (e) {
+        console.error('Error eliminando loan en rollback');
+      }
     }
 
-    return loan;
+    //Restaurar estado del device
+    try {
+      await firstValueFrom(
+        this.deviceClient.send('update_device_status', {
+          id: deviceId,
+          status: 'AVAILABLE',
+        })
+      );
+    } catch (e) {
+      console.error('Error restaurando device en rollback');
+    }
+
+    throw error;
   }
+}
 
   async approveLoan(id: string) {
     const loan = await this.reloadLoan(id);

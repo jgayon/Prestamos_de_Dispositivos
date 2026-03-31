@@ -46,4 +46,10 @@ export class LoanRepository {
     return this.prisma.loan.findMany({ where });
   }
 
+  async deleteLoan(id: string) {
+    return this.prisma.loan.delete({
+      where: { id },
+    });
+  }
+
 }
