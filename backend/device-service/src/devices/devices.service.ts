@@ -1,23 +1,13 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-
-export interface Device {
-  id: string;
-  name: string;
-  status: 'AVAILABLE' | 'LOANED';
-}
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { DeviceRepository } from './infrastructure/prisma/device.repository';
 
 @Injectable()
 export class DevicesService {
 
-  //Simulación de base de datos
-  private devices: Device[] = [
-    { id: '1', name: 'Laptop', status: 'AVAILABLE' },
-    { id: '2', name: 'Charger', status: 'AVAILABLE' },
-  ];
+  constructor(private readonly repo: DeviceRepository) {}
 
-  //Obtener dispositivo por ID
-  getDeviceById(id: string): Device {
-    const device = this.devices.find(d => d.id === id);
+  async getDeviceById(id: string) {
+    const device = await this.repo.findById(id);
 
     if (!device) {
       throw new NotFoundException('Dispositivo no encontrado');
@@ -26,26 +16,17 @@ export class DevicesService {
     return device;
   }
 
-  //Actualizar estado del dispositivo
-  updateDeviceStatus(id: string, status: string): Device {
-    const device = this.devices.find(d => d.id === id);
+  async updateDeviceStatus(id: string, status: string) {
+    const device = await this.repo.findById(id);
 
     if (!device) {
       throw new NotFoundException('Dispositivo no encontrado');
     }
 
-    //Validación
-    if (!['AVAILABLE', 'LOANED'].includes(status)) {
-      throw new BadRequestException('Estado no válido');
-    }
-
-    device.status = status as 'AVAILABLE' | 'LOANED';
-
-    return device;
+    return this.repo.update(id, { status });
   }
 
-  //Obtener todos los dispositivos (para pruebas/debug)
-  getAllDevices(): Device[] {
-    return this.devices;
+  async getAllDevices() {
+    return this.repo.findAll();
   }
 }
