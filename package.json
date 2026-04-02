@@ -1,0 +1,13 @@
+{
+  "name": "prestamos-microservices",
+  "version": "1.0.0",
+  "scripts": {
+    "start:gateway": "cd backend/api-gateway && npm run start:dev",
+    "start:loan": "cd backend/loan-service && npm run start:dev",
+    "start:device": "cd backend/device-service && npm run start:dev",
+    "start:all": "concurrently -n GATEWAY,LOAN,DEVICE -c blue,green,yellow \"npm run start:gateway\" \"npm run start:loan\" \"npm run start:device\""
+  },
+  "dependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
