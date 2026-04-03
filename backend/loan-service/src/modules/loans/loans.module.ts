@@ -4,6 +4,7 @@ import { LoansController } from './loans.controller';
 import { LoansService } from './loans.service';
 import { LoanRepository } from './infrastructure/prisma/loan.repository';
 import { DevicesRepository } from '../devices/devices.repository';
+import { LoansRpcController } from './loans.rpc.controller';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { DevicesRepository } from '../devices/devices.repository';
       },
     ]),
   ],
-  controllers: [LoansController],
+  controllers: [LoansController, LoansRpcController],
   providers: [LoansService, LoanRepository, DevicesRepository]
 })
 export class LoansModule {}

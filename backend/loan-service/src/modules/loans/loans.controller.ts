@@ -1,26 +1,26 @@
-import { Controller, Post, Patch, Param, Body, Get, UsePipes, ValidationPipe, Query,} from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import {
+  Controller,
+  Post,
+  Patch,
+  Param,
+  Body,
+  Get,
+  UsePipes,
+  ValidationPipe,
+  Query,
+} from '@nestjs/common';
 import { LoansService } from './loans.service';
-import { CreateLoanDto } from './dto/create-loan.dto';
 
 @Controller('loans')
 export class LoansController {
   constructor(private readonly loansService: LoansService) {}
 
-  //HTTP
+  // HTTP ENDPOINTS
 
   @Post()
   @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  create(@Body() createLoanDto: CreateLoanDto) {
-    const { userId, deviceId, type, startDate, endDate } = createLoanDto;
-
-    return this.loansService.createLoan(
-      userId,
-      deviceId,
-      type,
-      new Date(startDate),
-      new Date(endDate),
-    );
+  create(@Body() body: any) {
+    return this.loansService.createLoan(body);
   }
 
   @Get(':id')
@@ -60,42 +60,12 @@ export class LoansController {
   }
 
   @Patch(':id/return')
-  return(@Param('id') id: string) {
+  returnLoan(@Param('id') id: string) {
     return this.loansService.returnLoan(id);
   }
 
   @Patch(':id/expire')
   expire(@Param('id') id: string) {
     return this.loansService.expireLoan(id);
-  }
-
-  //MICRO (API GATEWAY)
-
-  @MessagePattern('create_loan')
-  async createLoanMicro(@Payload() data: any) {
-    const { userId, deviceId, type, startDate, endDate } = data;
-
-    return this.loansService.createLoan(
-      userId,
-      deviceId,
-      type,
-      new Date(startDate),
-      new Date(endDate),
-    );
-  }
-
-  @MessagePattern('get_loan')
-  async getLoanMicro(@Payload() data: { id: string }) {
-    return this.loansService.getLoanById(data.id);
-  }
-
-  @MessagePattern('list_loans')
-  async listLoansMicro(@Payload() filters: any) {
-    return this.loansService.listLoans(filters);
-  }
-
-  @MessagePattern('change_loan_status')
-  async changeStatusMicro(@Payload() data: { id: string; status: string }) {
-    return this.loansService.changeStatus(data.id, data.status);
   }
 }

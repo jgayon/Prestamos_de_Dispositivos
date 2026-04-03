@@ -5,7 +5,14 @@ import { DeviceRepository } from './infrastructure/prisma/device.repository';
 export class DevicesService {
 
   constructor(private readonly repo: DeviceRepository) {}
-
+  
+  async createDevice(data: { name: string; status?: string }) {
+    return this.repo.create({
+    name: data.name,
+    status: data.status || 'AVAILABLE',
+    });
+  }
+  
   async getDeviceById(id: string) {
     const device = await this.repo.findById(id);
 

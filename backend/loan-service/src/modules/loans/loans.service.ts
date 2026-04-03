@@ -32,29 +32,36 @@ export class LoansService {
     }
   }
 
-  async createLoan(
-  userId: string,
-  deviceId: string,
-  type: string,
-  startDate: Date,
-  endDate: Date
-): Promise<{ id: string; state: string }> {
+ async createLoan(data: {
+  userId: string;
+  deviceId: string;
+  type: string;
+  startDate: string;
+  endDate: string;
+}): Promise<{ id: string; state: string }> {
+
+  const { userId, deviceId, type } = data;
+  const startDate = new Date(data.startDate);
+  const endDate = new Date(data.endDate);
 
   if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
     throw new BadRequestException('Fechas inválidas');
   }
 
   if (endDate <= startDate) {
-    throw new BadRequestException('La fecha de fin debe ser posterior a la de inicio');
+    throw new BadRequestException('La fecha de fin debe ser posterior');
   }
 
   let loanCreated = false;
   const id = randomUUID();
 
   try {
-    //Consultar dispositivo (microservicio)
+    // 1. Consultar device (MICROSERVICIO)
     const device = await firstValueFrom(
-      this.deviceClient.send('get_device', { id: deviceId })
+      this.deviceClient.send(
+        { cmd: 'get_device' },
+        { id: deviceId }
+      )
     );
 
     if (!device) {
@@ -62,14 +69,14 @@ export class LoansService {
     }
 
     if (device.status !== 'AVAILABLE') {
-      throw new BadRequestException('El dispositivo no está disponible');
+      throw new BadRequestException('Dispositivo no disponible');
     }
 
-    //Crear loan (dominio)
+    // 2. Crear loan (DOMINIO)
     const factory = this.getFactory(type);
     const loan = factory.createLoan(id);
 
-    //Guardar en DB
+    // 3. Guardar en DB
     await this.loanRepository.createLoan({
       id,
       userId,
@@ -82,12 +89,12 @@ export class LoansService {
 
     loanCreated = true;
 
-    //Cambiar estado del device
+    // 4. Cambiar estado del device
     await firstValueFrom(
-      this.deviceClient.send('update_device_status', {
-        id: deviceId,
-        status: 'LOANED',
-      })
+      this.deviceClient.send(
+        { cmd: 'update_device_status' },
+        { id: deviceId, status: 'LOANED' }
+      )
     );
 
     this.loans.set(id, loan);
@@ -99,29 +106,27 @@ export class LoansService {
 
   } catch (error) {
 
-    //ROLLBACK (SAGA)
-
     console.log('Error en Saga, ejecutando rollback...');
 
-    //Si el loan se creó -> eliminarlo
+    // ROLLBACK LOAN
     if (loanCreated) {
       try {
         await this.loanRepository.deleteLoan(id);
-      } catch (e) {
-        console.error('Error eliminando loan en rollback');
+      } catch {
+        console.error('Error eliminando loan');
       }
     }
 
-    //Restaurar estado del device
+    // ROLLBACK DEVICE
     try {
       await firstValueFrom(
-        this.deviceClient.send('update_device_status', {
-          id: deviceId,
-          status: 'AVAILABLE',
-        })
+        this.deviceClient.send(
+          { cmd: 'update_device_status' },
+          { id: deviceId, status: 'AVAILABLE' }
+        )
       );
-    } catch (e) {
-      console.error('Error restaurando device en rollback');
+    } catch {
+      console.error('Error restaurando device');
     }
 
     throw error;
@@ -152,7 +157,7 @@ export class LoansService {
     if (record) {
       // MICRO: liberar dispositivo
       await firstValueFrom(
-        this.deviceClient.send('update_device_status', {
+        this.deviceClient.send({cmd:'update_device_status'}, {
           id: record.deviceId,
           status: 'AVAILABLE'
         })
@@ -171,7 +176,7 @@ export class LoansService {
 
     if (record) {
       await firstValueFrom(
-        this.deviceClient.send('update_device_status', {
+        this.deviceClient.send({cmd:'update_device_status'}, {
           id: record.deviceId,
           status: 'AVAILABLE'
         })

@@ -6,7 +6,16 @@ export class UsersRepository {
   private prisma = new PrismaClient();
 
   async createUser(data: { id?: string; name: string; email: string }) {
-    return this.prisma.user.create({ data });
+    try {
+    return await this.prisma.user.create({
+      data,
+    });
+  } catch (error) {
+    if (error.code === 'P2002') {
+      throw new Error('El email ya está registrado');
+    }
+    throw error;
+  }
   }
 
   async findUserById(id: string) {
