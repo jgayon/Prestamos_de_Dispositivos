@@ -19,6 +19,6 @@ export class DevicesController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.client.send( 'get_device', id);
+    return this.client.send( 'get_device', {id});
   }
 }
