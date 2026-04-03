@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  # ============================================================================
+  # API GATEWAY - Punto de entrada único (Puerto 3000)
+  # ============================================================================
+  api-gateway:
+    build:
+      context: ./backend/api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - GATEWAY_PORT=3000
+      - LOAN_SERVICE_HOST=loan-service
+      - LOAN_SERVICE_PORT=3001
+      - DEVICE_SERVICE_HOST=device-service
+      - DEVICE_SERVICE_PORT=3002
+    depends_on:
+      - loan-service
+      - device-service
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================================================
+  # LOAN SERVICE - Gestión de préstamos (Puerto 3001 HTTP + 3011 RPC)
+  # ============================================================================
+  loan-service:
+    build:
+      context: ./backend/loan-service
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"  # HTTP
+      - "3011:3011"  # TCP/RPC
+    environment:
+      - NODE_ENV=development
+      - LOAN_SERVICE_HOST=localhost
+      - LOAN_SERVICE_PORT=3001
+      - LOAN_SERVICE_RPC_PORT=3011
+      - DEVICE_SERVICE_HOST=device-service
+      - DEVICE_SERVICE_PORT=3002
+      - DATABASE_URL=file:./prisma/dev.db
+    depends_on:
+      - device-service
+    networks:
+      - microservices-network
+    volumes:
+      - ./backend/loan-service/prisma:/app/prisma
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # ============================================================================
+  # DEVICE SERVICE - Gestión de dispositivos (Puerto 3002 TCP)
+  # ============================================================================
+  device-service:
+    build:
+      context: ./backend/device-service
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3002"  # TCP/RPC
+    environment:
+      - NODE_ENV=development
+      - DEVICE_SERVICE_HOST=localhost
+      - DEVICE_SERVICE_PORT=3002
+      - DATABASE_URL=file:./prisma/dev.db
+    networks:
+      - microservices-network
+    volumes:
+      - ./backend/device-service/prisma:/app/prisma
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "3002"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  microservices-network:
+    driver: bridge
