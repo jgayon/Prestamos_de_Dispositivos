@@ -14,7 +14,7 @@ export class DevicesController {
 
   @Get()
   findAll() {
-    return this.client.send( 'get_devices' , {});
+    return this.client.send( 'get_all_devices' , {});
   }
 
   @Get(':id')
