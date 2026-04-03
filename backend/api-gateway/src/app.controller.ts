@@ -19,7 +19,7 @@ export class AppController {
   @Post('loans')
   async createLoan(@Body() body: any) {
     return await firstValueFrom(
-      this.loanClient.send('create_loan', body)
+      this.loanClient.send({ cmd: 'create_loan' }, body)
     );
   }
 }

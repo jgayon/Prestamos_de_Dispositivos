@@ -1,5 +1,6 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class DeviceRepository implements OnModuleInit, OnModuleDestroy {
@@ -14,8 +15,14 @@ export class DeviceRepository implements OnModuleInit, OnModuleDestroy {
   }
 
   create(data: any) {
-    return this.prisma.device.create({ data });
-  }
+  return this.prisma.device.create({
+    data: {
+      id: randomUUID(), 
+      name: data.name,
+      status: data.status,
+    },
+  });
+}
 
   findById(id: string) {
     return this.prisma.device.findUnique({ where: { id } });

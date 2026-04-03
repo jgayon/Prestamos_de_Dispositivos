@@ -59,7 +59,7 @@ export class LoansService {
     // 1. Consultar device (MICROSERVICIO)
     const device = await firstValueFrom(
       this.deviceClient.send(
-        { cmd: 'get_device' },
+        'get_device',
         { id: deviceId }
       )
     );
@@ -92,7 +92,7 @@ export class LoansService {
     // 4. Cambiar estado del device
     await firstValueFrom(
       this.deviceClient.send(
-        { cmd: 'update_device_status' },
+        'update_device_status',
         { id: deviceId, status: 'LOANED' }
       )
     );
@@ -105,7 +105,7 @@ export class LoansService {
     };
 
   } catch (error) {
-
+    console.log('------ERROR REAL:', error);
     console.log('Error en Saga, ejecutando rollback...');
 
     // ROLLBACK LOAN
@@ -121,7 +121,7 @@ export class LoansService {
     try {
       await firstValueFrom(
         this.deviceClient.send(
-          { cmd: 'update_device_status' },
+          'update_device_status',
           { id: deviceId, status: 'AVAILABLE' }
         )
       );
@@ -157,7 +157,7 @@ export class LoansService {
     if (record) {
       // MICRO: liberar dispositivo
       await firstValueFrom(
-        this.deviceClient.send({cmd:'update_device_status'}, {
+        this.deviceClient.send('update_device_status', {
           id: record.deviceId,
           status: 'AVAILABLE'
         })
@@ -176,7 +176,7 @@ export class LoansService {
 
     if (record) {
       await firstValueFrom(
-        this.deviceClient.send({cmd:'update_device_status'}, {
+        this.deviceClient.send('update_device_status', {
           id: record.deviceId,
           status: 'AVAILABLE'
         })

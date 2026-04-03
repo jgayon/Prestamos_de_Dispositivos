@@ -9,16 +9,16 @@ export class DevicesController {
 
   @Post()
   create(@Body() data: any) {
-    return this.client.send({ cmd: 'create_device' }, data);
+    return this.client.send('create_device' , data);
   }
 
   @Get()
   findAll() {
-    return this.client.send({ cmd: 'get_devices' }, {});
+    return this.client.send( 'get_devices' , {});
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.client.send({ cmd: 'get_device' }, id);
+    return this.client.send( 'get_device', id);
   }
 }

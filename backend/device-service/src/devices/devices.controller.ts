@@ -6,22 +6,26 @@ import { DevicesService } from './devices.service';
 export class DevicesController {
 
   constructor(private readonly devicesService: DevicesService) {}
-    @MessagePattern({ cmd: 'create_device' })
+    @MessagePattern( 'create_device' )
     createDevice(@Payload() data: { name: string }) {
+      console.log('📡 create_device recibido:', data);
       return this.devicesService.createDevice(data);
     }
-    @MessagePattern({ cmd: 'get_device' })
+    @MessagePattern( 'get_device' )
     getDevice(@Payload() data: { id: string }) {
+       console.log('📡 get_device recibido:', data);
       return this.devicesService.getDeviceById(data.id);
     }
 
-    @MessagePattern({ cmd: 'update_device_status' })
+    @MessagePattern( 'update_device_status' )
     updateDeviceStatus(@Payload() data: { id: string; status: string }) {
+      console.log('📡 update_device_status:', data);
       return this.devicesService.updateDeviceStatus(data.id, data.status);
     }
 
-    @MessagePattern({ cmd: 'get_all_devices' })
+    @MessagePattern('get_all_devices')
     getAllDevices() {
+      console.log('📡 get_all_devices recibido');
       return this.devicesService.getAllDevices();
     }
 }
