@@ -6,7 +6,7 @@ import Login from "./pages/LoginPages";
 import Dashboard from "./pages/DashboardPage";
 import LoansList from "./pages/LoansPage";
 import LoanForm from "./pages/LoanForm";
-import LoanDetail from "./pages/LoanDetail";
+import LoanDetail from "./pages/LoanDetailPage";
 
 function App() {
   return (

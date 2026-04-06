@@ -1,66 +1,88 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-
-const navItems = [
-  { path: '/dashboard', label: '🏠 Dashboard' },
-  { path: '/loans',     label: '📋 Préstamos' },
-];
+import { useAuth } from '../context/AuthContext';
+import './layout.css';
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/');
-  };
+  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div style={styles.wrapper}>
+    <div className="layout">
       {/* Sidebar */}
-      <aside style={styles.sidebar}>
-        <div style={styles.brand}>
-          <span style={styles.brandIcon}>💻</span>
-          <span style={styles.brandText}>Préstamos</span>
+      <aside className="sidebar">
+        <div className="sidebar-header">
+          <div className="logo">
+            <div className="logo-icon">📋</div>
+            <div>
+              <h3>LoanTech</h3>
+              <p>Sistema de Préstamos</p>
+            </div>
+          </div>
         </div>
-        <nav style={styles.nav}>
-          {navItems.map(item => (
-            <Link
-              key={item.path}
-              to={item.path}
-              style={{
-                ...styles.navLink,
-                ...(location.pathname.startsWith(item.path) ? styles.navLinkActive : {}),
-              }}
-            >
-              {item.label}
-            </Link>
-          ))}
+
+        <div className="sidebar-profile">
+          <div className="profile-avatar">{user?.name?.[0] || 'U'}</div>
+          <div className="profile-info">
+            <h4>{user?.name || 'Usuario'}</h4>
+            <p>Admin</p>
+          </div>
+        </div>
+
+        <nav className="sidebar-nav">
+          <h5 className="nav-title">MENÚ PRINCIPAL</h5>
+          <Link to="/dashboard" className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}>
+            <span>📊</span> Dashboard
+          </Link>
+          <Link to="/loans" className={`nav-link ${isActive('/loans') ? 'active' : ''}`}>
+            <span>📝</span> Préstamos <span className="badge-count">3</span>
+          </Link>
+          <Link to="/devices" className={`nav-link ${isActive('/devices') ? 'active' : ''}`}>
+            <span>💻</span> Dispositivos
+          </Link>
+          <Link to="/users" className={`nav-link ${isActive('/users') ? 'active' : ''}`}>
+            <span>👥</span> Usuarios
+          </Link>
         </nav>
-        <button style={styles.logoutBtn} onClick={handleLogout}>
-          🚪 Cerrar sesión
-        </button>
+
+        <div className="sidebar-footer">
+          <button className="btn-footer" onClick={() => alert('Cambiar usuario')}>
+            🔄 Cambiar a Usuario
+          </button>
+          <button className="btn-footer btn-logout" onClick={() => { logout(); navigate('/'); }}>
+            🚪 Cerrar sesión
+          </button>
+        </div>
       </aside>
 
-      {/* Main content */}
-      <main style={styles.main}>
-        {children}
+      {/* Main Content */}
+      <main className="main-content">
+        <header className="topbar">
+          <div className="topbar-left">
+            <h1>Sistema de Gestión de Préstamos</h1>
+            <p>lunes, 6 de abril de 2026</p>
+          </div>
+          <div className="topbar-right">
+            <button className="icon-btn">🔔</button>
+            <div className="user-menu">
+              <div className="user-avatar">{user?.name?.[0] || 'U'}</div>
+              <div className="user-info">
+                <p>{user?.name || 'Usuario'}</p>
+                <span>Admin</span>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="content-wrapper">
+          {children}
+        </div>
       </main>
     </div>
   );
-};
-
-const styles: Record<string, React.CSSProperties> = {
-  wrapper: { display: 'flex', minHeight: '100vh', background: '#f9fafb', fontFamily: "'Segoe UI', sans-serif" },
-  sidebar: { width: 220, background: '#1e293b', display: 'flex', flexDirection: 'column', padding: '1.5rem 1rem', gap: '0.5rem', flexShrink: 0 },
-  brand: { display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', marginBottom: '1rem' },
-  brandIcon: { fontSize: '1.4rem' },
-  brandText: { color: '#f1f5f9', fontWeight: 700, fontSize: '1.1rem' },
-  nav: { display: 'flex', flexDirection: 'column', gap: '0.25rem', flex: 1 },
-  navLink: { color: '#94a3b8', textDecoration: 'none', padding: '10px 12px', borderRadius: 8, fontSize: '0.9rem', transition: 'all 0.15s' },
-  navLinkActive: { background: '#3b82f6', color: '#fff' },
-  logoutBtn: { background: 'none', border: '1px solid #334155', color: '#94a3b8', borderRadius: 8, padding: '9px 12px', cursor: 'pointer', fontSize: '0.875rem', textAlign: 'left' },
-  main: { flex: 1, padding: '2rem', overflowY: 'auto' },
 };
 
 export default Layout;

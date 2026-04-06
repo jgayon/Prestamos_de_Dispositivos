@@ -66,12 +66,21 @@ const LoanForm: React.FC = () => {
 				</select>
 			</div>
 
-	<div>
-		<label>Fecha inicio</label>
-		<input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} required />
-	</div>
-	<div>
-		<label>Fecha fin</label>
-		<input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} required />
-	</div>
+			<div>
+				<label>Fecha inicio</label>
+				<input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} required />
+			</div>
+
+			<div>
+				<label>Fecha fin</label>
+				<input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} required />
+			</div>
+
+			<button type="submit" disabled={loading}>
+				{loading ? 'Creando...' : 'Crear Préstamo'}
+			</button>
+		</form>
+	);
+};
+
 export default LoanForm;

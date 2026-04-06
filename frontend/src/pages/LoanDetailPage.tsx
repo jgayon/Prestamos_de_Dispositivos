@@ -37,15 +37,19 @@ const LoanDetailPage = () => {
 			<h2>Detalle Préstamo</h2>
 			<p><strong>ID:</strong> {loan.id}</p>
 			<p><strong>Usuario:</strong> {loan.userId || loan.user?.name}</p>
-		<p><strong>Dispositivo:</strong> {loan.deviceId || loan.device?.name}</p>
-		<p><strong>Tipo:</strong> {loan.type}</p>
-		<p><strong>Estado:</strong> {loan.status || loan.state}</p>
-		<p><strong>Inicio:</strong> {loan.startDate ? new Date(loan.startDate).toLocaleDateString() : '-'}</p>
-		<p><strong>Fin:</strong> {loan.endDate ? new Date(loan.endDate).toLocaleDateString() : '-'}</p>
-				// refresh
-				if (!loan.id) return;
-				getLoan(loan.id).then(res => setLoan(res.data));
-			}} />
+			<p><strong>Dispositivo:</strong> {loan.deviceId || loan.device?.name}</p>
+			<p><strong>Tipo:</strong> {loan.type}</p>
+			<p><strong>Estado:</strong> {loan.status || loan.state}</p>
+			<p><strong>Inicio:</strong> {loan.startDate ? new Date(loan.startDate).toLocaleDateString() : '-'}</p>
+			<p><strong>Fin:</strong> {loan.endDate ? new Date(loan.endDate).toLocaleDateString() : '-'}</p>
+
+			<LoanStatusActions 
+				loan={loan}
+				onStatusChanged={() => {
+					if (!loan.id) return;
+					getLoan(loan.id).then(res => setLoan(res.data));
+				}}
+			/>
 
 			<div style={{ marginTop: 20 }}>
 				<button onClick={() => navigate('/loans')}>Volver a lista</button>
