@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # ============================================================================
   # API GATEWAY - Punto de entrada único (Puerto 3000)
