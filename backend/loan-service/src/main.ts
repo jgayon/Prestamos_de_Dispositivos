@@ -8,7 +8,19 @@ async function bootstrap() {
 
   // Crear servidor HTTP
   const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe());
+  
+  // Habilitar CORS
+  app.enableCors({
+    origin: process.env.CORS_ORIGIN || '*',
+    credentials: true,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: 'Content-Type,Authorization',
+  });
+
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+  }));
 
   // Conectar microservicio TCP para comunicación inter-servicios
   app.connectMicroservice<MicroserviceOptions>({
@@ -26,5 +38,6 @@ async function bootstrap() {
 
   logger.log(`🚀 Loan Service HTTP listening on port ${port}`);
   logger.log(`🚀 Loan Service RPC (TCP) listening on port ${process.env.LOAN_SERVICE_RPC_PORT || 3011}`);
+  logger.log(`✅ CORS enabled for origin: ${process.env.CORS_ORIGIN || '*'}`);
 }
 bootstrap();

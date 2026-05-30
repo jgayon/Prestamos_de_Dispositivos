@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject, GatewayTimeoutException } from '@nestjs/common';
 import { Loan } from './domain/entities/Loan';
 import { LoanFactory } from './domain/factory/LoanFactory';
 import { LaptopLoanFactory } from './domain/factory/LaptopLoanFactory';
@@ -7,7 +7,7 @@ import { KitLoanFactory } from './domain/factory/KitLoanFactory';
 import { LoanRepository } from './infrastructure/prisma/loan.repository';
 import { randomUUID } from 'crypto';
 import { ClientProxy } from '@nestjs/microservices';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, timeout } from 'rxjs';
 
 @Injectable()
 export class LoansService {
@@ -41,6 +41,19 @@ export class LoansService {
 }): Promise<{ id: string; state: string }> {
 
   const { userId, deviceId, type } = data;
+  
+  // VALIDACIÓN 1: Validar userId
+  if (!userId || userId.trim() === '') {
+    throw new BadRequestException('Usuario es requerido');
+  }
+
+  // VALIDACIÓN 2: Validar tipo de préstamo
+  const validTypes = ['LAPTOP', 'CHARGER', 'KIT'];
+  if (!validTypes.includes(type.toUpperCase())) {
+    throw new BadRequestException(`Tipo de préstamo no válido. Válidos: ${validTypes.join(', ')}`);
+  }
+
+  // VALIDACIÓN 3: Validar fechas
   const startDate = new Date(data.startDate);
   const endDate = new Date(data.endDate);
 
@@ -49,39 +62,55 @@ export class LoansService {
   }
 
   if (endDate <= startDate) {
-    throw new BadRequestException('La fecha de fin debe ser posterior');
+    throw new BadRequestException('La fecha de fin debe ser posterior a la fecha de inicio');
+  }
+
+  // VALIDACIÓN 4: No permitir fechas pasadas
+  const now = new Date();
+  if (startDate < now) {
+    throw new BadRequestException('La fecha de inicio no puede ser en el pasado');
+  }
+
+  // VALIDACIÓN 5: No permitir préstamos muy largos (más de 1 año)
+  const maxDuration = 365 * 24 * 60 * 60 * 1000; // 1 año en ms
+  if (endDate.getTime() - startDate.getTime() > maxDuration) {
+    throw new BadRequestException('La duración del préstamo no puede superar 1 año');
   }
 
   let loanCreated = false;
   const id = randomUUID();
 
   try {
-    // 1. Consultar device (MICROSERVICIO)
-    const device = await firstValueFrom(
-      this.deviceClient.send(
-        'get_device',
-        { id: deviceId }
-      )
-    );
+    // PASO 1: Validar que el dispositivo existe y está disponible
+    let device;
+    try {
+      device = await firstValueFrom(
+        this.deviceClient.send('get_device', { id: deviceId }).pipe(
+          timeout(5000) // 5 segundos de timeout
+        )
+      );
+    } catch (err) {
+      throw new GatewayTimeoutException('Device Service no respondió. Intente nuevamente');
+    }
 
     if (!device) {
       throw new NotFoundException('Dispositivo no encontrado');
     }
 
     if (device.status !== 'AVAILABLE') {
-      throw new BadRequestException('Dispositivo no disponible');
+      throw new BadRequestException(`Dispositivo no disponible (Estado: ${device.status})`);
     }
 
-    // 2. Crear loan (DOMINIO)
+    // PASO 2: Crear préstamo en el dominio
     const factory = this.getFactory(type);
     const loan = factory.createLoan(id);
 
-    // 3. Guardar en DB
+    // PASO 3: Guardar en BD
     await this.loanRepository.createLoan({
       id,
       userId,
       deviceId,
-      type,
+      type: type.toUpperCase(),
       status: loan.getState(),
       startDate,
       endDate,
@@ -89,15 +118,25 @@ export class LoansService {
 
     loanCreated = true;
 
-    // 4. Cambiar estado del device
-    await firstValueFrom(
-      this.deviceClient.send(
-        'update_device_status',
-        { id: deviceId, status: 'LOANED' }
-      )
-    );
+    // PASO 4: Actualizar estado del dispositivo
+    try {
+      await firstValueFrom(
+        this.deviceClient.send('update_device_status', {
+          id: deviceId,
+          status: 'LOANED'
+        }).pipe(
+          timeout(5000)
+        )
+      );
+    } catch (err) {
+      // ROLLBACK: Si falla la actualización del dispositivo, eliminar el préstamo creado
+      await this.loanRepository.deleteLoan(id);
+      throw new GatewayTimeoutException('Error actualizando dispositivo. Préstamo cancelado');
+    }
 
     this.loans.set(id, loan);
+
+    console.log(`✅ Préstamo creado: ID=${id}, Usuario=${userId}, Dispositivo=${deviceId}, Tipo=${type}`);
 
     return {
       id: loan.id,
@@ -105,28 +144,31 @@ export class LoansService {
     };
 
   } catch (error) {
-    console.log('------ERROR REAL:', error);
-    console.log('Error en Saga, ejecutando rollback...');
+    console.error(`❌ Error en createLoan: ${error.message}`);
 
-    // ROLLBACK LOAN
+    // ROLLBACK AUTOMÁTICO
     if (loanCreated) {
       try {
         await this.loanRepository.deleteLoan(id);
-      } catch {
-        console.error('Error eliminando loan');
+        console.log(`🔄 Rollback: Préstamo ${id} eliminado de BD`);
+      } catch (rbError) {
+        console.error(`⚠️ Error en rollback de préstamo: ${rbError.message}`);
       }
     }
 
-    // ROLLBACK DEVICE
+    // Intentar restaurar dispositivo (best-effort)
     try {
       await firstValueFrom(
-        this.deviceClient.send(
-          'update_device_status',
-          { id: deviceId, status: 'AVAILABLE' }
+        this.deviceClient.send('update_device_status', {
+          id: deviceId,
+          status: 'AVAILABLE'
+        }).pipe(
+          timeout(5000)
         )
       );
-    } catch {
-      console.error('Error restaurando device');
+      console.log(`🔄 Rollback: Dispositivo ${deviceId} restaurado a AVAILABLE`);
+    } catch (deviceError) {
+      console.error(`⚠️ Error restaurando dispositivo: ${deviceError.message}`);
     }
 
     throw error;
@@ -155,13 +197,20 @@ export class LoansService {
     const record = await this.loanRepository.findLoanById(id);
 
     if (record) {
-      // MICRO: liberar dispositivo
-      await firstValueFrom(
-        this.deviceClient.send('update_device_status', {
-          id: record.deviceId,
-          status: 'AVAILABLE'
-        })
-      );
+      try {
+        // MICRO: liberar dispositivo
+        await firstValueFrom(
+          this.deviceClient.send('update_device_status', {
+            id: record.deviceId,
+            status: 'AVAILABLE'
+          }).pipe(
+            timeout(5000)
+          )
+        );
+      } catch (err) {
+        console.error(`⚠️ Error restaurando dispositivo ${record.deviceId}: ${err.message}`);
+        // No fallar, el préstamo ya está marcado como devuelto
+      }
     }
 
     return { id: loan.id, state: loan.getState() };
@@ -175,12 +224,19 @@ export class LoansService {
     const record = await this.loanRepository.findLoanById(id);
 
     if (record) {
-      await firstValueFrom(
-        this.deviceClient.send('update_device_status', {
-          id: record.deviceId,
-          status: 'AVAILABLE'
-        })
-      );
+      try {
+        await firstValueFrom(
+          this.deviceClient.send('update_device_status', {
+            id: record.deviceId,
+            status: 'AVAILABLE'
+          }).pipe(
+            timeout(5000)
+          )
+        );
+      } catch (err) {
+        console.error(`⚠️ Error restaurando dispositivo ${record.deviceId}: ${err.message}`);
+        // No fallar, el préstamo ya está marcado como expirado
+      }
     }
 
     return { id: loan.id, state: loan.getState() };
