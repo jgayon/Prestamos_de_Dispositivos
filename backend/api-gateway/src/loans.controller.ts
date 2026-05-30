@@ -1,5 +1,6 @@
 import { Controller, Post, Get, Body, Inject } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { CreateLoanDto } from './dto/create-loan.dto';
 
 @Controller('loans')
 export class LoansController {
@@ -8,7 +9,7 @@ export class LoansController {
   ) {}
 
   @Post()
-  create(@Body() data: any) {
+  create(@Body() data: CreateLoanDto) {
     return this.client.send({ cmd: 'create_loan' }, data);
   }
 

@@ -9,16 +9,19 @@ async function bootstrap() {
   
   // Enable CORS
   app.enableCors({
-    origin: '*',
+    origin: ['http://localhost:5173'],
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: 'Content-Type,Authorization',
   });
 
-  app.useGlobalPipes(new ValidationPipe({
+  app.useGlobalPipes(
+  new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true,
-  }));
+    transform: true,
+  }),
+);
 
   const port = parseInt(process.env.GATEWAY_PORT || '3000');
   await app.listen(port);

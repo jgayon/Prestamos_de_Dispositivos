@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body, Param, Inject } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { CreateDeviceDto } from './dto/create-device.dto';
 
 @Controller('devices')
 export class DevicesController {
@@ -8,7 +9,7 @@ export class DevicesController {
   ) {}
 
   @Post()
-  create(@Body() data: any) {
+  create(@Body() data: CreateDeviceDto) {
     return this.client.send('create_device' , data);
   }
 

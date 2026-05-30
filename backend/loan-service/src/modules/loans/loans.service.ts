@@ -8,6 +8,7 @@ import { LoanRepository } from './infrastructure/prisma/loan.repository';
 import { randomUUID } from 'crypto';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
+import { timeout } from 'rxjs';
 
 @Injectable()
 export class LoansService {
@@ -40,7 +41,8 @@ export class LoansService {
   endDate: string;
 }): Promise<{ id: string; state: string }> {
 
-  const { userId, deviceId, type } = data;
+  const { userId, deviceId } = data;
+  const type = data.type.trim().toUpperCase();
   const startDate = new Date(data.startDate);
   const endDate = new Date(data.endDate);
 
@@ -61,8 +63,8 @@ export class LoansService {
       this.deviceClient.send(
         'get_device',
         { id: deviceId }
-      )
-    );
+      ).pipe(timeout(5000),
+    ));
 
     if (!device) {
       throw new NotFoundException('Dispositivo no encontrado');
@@ -105,8 +107,7 @@ export class LoansService {
     };
 
   } catch (error) {
-    console.log('------ERROR REAL:', error);
-    console.log('Error en Saga, ejecutando rollback...');
+    console.error('Saga rollback ejecutado:', error);
 
     // ROLLBACK LOAN
     if (loanCreated) {

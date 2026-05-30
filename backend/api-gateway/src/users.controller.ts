@@ -16,25 +16,37 @@ export class UsersController {
 
   @Post('auth/login')
   login(@Body() data: { email: string; password: string }) {
-    console.log('Login attempt:', data.email);
-    
-    const user = DEMO_USERS.find(u => u.email === data.email);
-    
-    if (!user) {
-      console.log('User not found:', data.email);
-      throw new Error('Credenciales incorrectas');
-    }
-    
-    console.log('Login success:', user.email);
-    
-    // Token simple
-    const token = Buffer.from(JSON.stringify(user)).toString('base64');
-    
-    return { 
-      success: true,
-      access_token: token, 
-      token: token,
-      user: { id: user.id, email: user.email, name: user.name } 
+
+  const user = DEMO_USERS.find(
+    u =>
+      u.email === data.email &&
+      u.password === data.password,
+  );
+
+  if (!user) {
+    return {
+      success: false,
+      message: 'Credenciales incorrectas',
+    };
+  }
+
+  const safeUser = {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+  };
+
+  const token = Buffer.from(
+    JSON.stringify({
+      id: user.id,
+      email: user.email,
+    }),
+    ).toString('base64');
+
+    return {
+    success: true,
+    access_token: token,
+    user: safeUser,
     };
   }
 

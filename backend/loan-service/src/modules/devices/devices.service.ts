@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DevicesRepository } from './devices.repository';
 import { randomUUID } from 'crypto';
+import { UpdateDeviceDto } from './dto/update-device.dto';
 
 @Injectable()
 export class DevicesService {
@@ -25,7 +26,9 @@ export class DevicesService {
     return this.devicesRepository.findAvailableDevices();
   }
 
-  async updateDevice(id: string, data: any) {
+  async updateDevice(
+  id: string,
+  data: UpdateDeviceDto,) {
     return this.devicesRepository.updateDevice(id, data);
   }
 
