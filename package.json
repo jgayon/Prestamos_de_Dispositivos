@@ -1,13 +1,35 @@
 {
   "name": "prestamos-microservices",
   "version": "1.0.0",
+  "private": true,
   "scripts": {
+    "install:gateway": "cd backend/api-gateway && npm install",
+    "install:loan": "cd backend/loan-service && npm install",
+    "install:device": "cd backend/device-service && npm install",
+    "install:frontend": "cd frontend && npm install",
+
+    "install:all": "npm run install:gateway && npm run install:loan && npm run install:device && npm run install:frontend",
+
+    "prisma:loan": "cd backend/loan-service && npx prisma generate && npx prisma migrate dev --name init",
+    "prisma:device": "cd backend/device-service && npx prisma generate && npx prisma migrate dev --name init",
+
+    "prisma:all": "npm run prisma:loan && npm run prisma:device",
+
     "start:gateway": "cd backend/api-gateway && npm run start:dev",
     "start:loan": "cd backend/loan-service && npm run start:dev",
     "start:device": "cd backend/device-service && npm run start:dev",
-    "start:all": "concurrently -n GATEWAY,LOAN,DEVICE -c blue,green,yellow \"npm run start:gateway\" \"npm run start:loan\" \"npm run start:device\""
+    "start:frontend": "cd frontend && npm run dev",
+
+    "start:backend": "concurrently -n GATEWAY,LOAN,DEVICE -c blue,green,yellow \"npm run start:gateway\" \"npm run start:loan\" \"npm run start:device\"",
+
+    "start:all": "concurrently -n GATEWAY,LOAN,DEVICE,FRONTEND -c blue,green,yellow,magenta \"npm run start:gateway\" \"npm run start:loan\" \"npm run start:device\" \"npm run start:frontend\"",
+
+    "setup": "npm run install:all && npm run prisma:all",
+
+    "project:start": "npm run setup && npm run start:all"
   },
   "dependencies": {
     "concurrently": "^9.2.1"
   }
 }
+

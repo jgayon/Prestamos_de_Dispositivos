@@ -8,14 +8,16 @@ import { LoansController } from './loans.controller';
 
 @Module({
   imports: [
-    // Clientes para comunicarse con microservicios
     ClientsModule.register([
       {
         name: 'LOAN_SERVICE',
         transport: Transport.TCP,
         options: {
           host: process.env.LOAN_SERVICE_HOST || 'localhost',
-          port: parseInt(process.env.LOAN_SERVICE_RPC_PORT || '3011'),
+          port: parseInt(
+            process.env.LOAN_SERVICE_RPC_PORT || '3011',
+            10,
+          ),
         },
       },
       {
@@ -23,12 +25,20 @@ import { LoansController } from './loans.controller';
         transport: Transport.TCP,
         options: {
           host: process.env.DEVICE_SERVICE_HOST || 'localhost',
-          port: parseInt(process.env.DEVICE_SERVICE_PORT || '3002'),
+          port: parseInt(
+            process.env.DEVICE_SERVICE_RPC_PORT || '3012',
+            10,
+          ),
         },
       },
     ]),
   ],
-  controllers: [AppController, UsersController, DevicesController, LoansController],
+  controllers: [
+    AppController,
+    UsersController,
+    DevicesController,
+    LoansController,
+  ],
   providers: [AppService],
 })
 export class AppModule {}

@@ -8,18 +8,20 @@ import { DevicesModule } from './modules/devices/devices.module';
 
 @Module({
   imports: [
-    // Cliente para comunicarse con Device Service
     ClientsModule.register([
       {
         name: 'DEVICE_SERVICE',
         transport: Transport.TCP,
         options: {
           host: process.env.DEVICE_SERVICE_HOST || 'localhost',
-          port: parseInt(process.env.DEVICE_SERVICE_PORT || '3002'),
+          port: parseInt(
+            process.env.DEVICE_SERVICE_RPC_PORT || '3012',
+            10,
+          ),
         },
       },
     ]),
-    // Módulos de características
+
     LoansModule,
     UsersModule,
     DevicesModule,

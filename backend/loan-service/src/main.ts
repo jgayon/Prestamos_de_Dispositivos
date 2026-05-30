@@ -8,7 +8,13 @@ async function bootstrap() {
 
   // Crear servidor HTTP
   const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+  new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
+  }),
+);
 
   // Conectar microservicio TCP para comunicación inter-servicios
   app.connectMicroservice<MicroserviceOptions>({
