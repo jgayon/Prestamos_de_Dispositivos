@@ -7,6 +7,8 @@ import Dashboard from "./pages/DashboardPage";
 import LoansList from "./pages/LoansPage";
 import LoanForm from "./pages/LoanForm";
 import LoanDetail from "./pages/LoanDetailPage";
+import DevicesPage from "./pages/DevicesPage";
+import UsersPage from "./pages/UsersPage";
 
 function App() {
   return (
@@ -17,6 +19,8 @@ function App() {
         <Route path="/loans" element={<LoansList />} />
         <Route path="/loans/new" element={<LoanForm />} />
         <Route path="/loans/:id" element={<LoanDetail />} />
+        <Route path="/devices" element={<DevicesPage />} />
+        <Route path="/users" element={<UsersPage />} />
       </Routes>
     </BrowserRouter>
   );
