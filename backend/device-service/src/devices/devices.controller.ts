@@ -28,4 +28,16 @@ export class DevicesController {
       console.log('📡 get_all_devices recibido');
       return this.devicesService.getAllDevices();
     }
+
+    @MessagePattern('delete_device')
+    deleteDevice(@Payload() data: { id: string }) {
+      console.log('📡 delete_device recibido:', data.id);
+      return this.devicesService.deleteDevice(data.id);
+    }
+
+    @MessagePattern('get_available_devices')
+    getAvailableDevices() {
+      console.log('📡 get_available_devices recibido');
+      return this.devicesService.getAvailableDevices();
+    }
 }

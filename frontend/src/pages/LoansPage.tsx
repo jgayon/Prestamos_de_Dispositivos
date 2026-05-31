@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { getLoans } from "../api/loans.api";
 import Layout from "../components/Layout";
+import LoanTable from "../components/LoanTable";
 import { Link } from "react-router-dom";
+import '../styles/forms.css';
 
 const LoansList = () => {
 
@@ -9,14 +11,24 @@ const LoansList = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const load = () => {
-    // build query string
-    const params = new URLSearchParams();
-    if (statusFilter) params.append('status', statusFilter);
-    if (startDate) params.append('startDate', startDate);
-    if (endDate) params.append('endDate', endDate);
-    getLoans(params.toString()).then(res => setLoans(res.data));
+  const load = async () => {
+    setLoading(true);
+    try {
+      // build query string
+      const params = new URLSearchParams();
+      if (statusFilter) params.append('status', statusFilter);
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
+      const response = await getLoans(params.toString());
+      setLoans(response.data || []);
+    } catch (error) {
+      console.error('Error loading loans:', error);
+      setLoans([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -26,35 +38,66 @@ const LoansList = () => {
   return (
     <Layout>
 
-      <h2>Préstamos</h2>
-
-      <Link to="/loans/new">Nuevo préstamo</Link>
-
-      <div style={{ marginTop: '1rem' }}>
-        <label>Estado:</label>
-        <select value={statusFilter} onChange={e => { setStatusFilter(e.target.value); load(); }}>
-          <option value="">Todos</option>
-          <option value="REQUESTED">Solicitado</option>
-          <option value="APPROVED">Aprobado</option>
-          <option value="DELIVERED">Entregado</option>
-          <option value="RETURNED">Devuelto</option>
-          <option value="EXPIRED">Vencido</option>
-        </select>
-        <label style={{ marginLeft: '1rem' }}>Desde:</label>
-        <input type="date" value={startDate} onChange={e => { setStartDate(e.target.value); load(); }} />
-        <label style={{ marginLeft: '1rem' }}>Hasta:</label>
-        <input type="date" value={endDate} onChange={e => { setEndDate(e.target.value); load(); }} />
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <h2 style={{ margin: 0 }}>Préstamos</h2>
+        <Link to="/loans/new" className="btn btn-primary">
+          ➕ Nuevo Préstamo
+        </Link>
       </div>
 
-      <ul>
-        {loans.map((loan) => (
-          <li key={loan.id}>
-            <Link to={`/loans/${loan.id}`}>
-              Usuario: {loan.userId} | Estado: {loan.state}
-            </Link>
-          </li>
-        ))}
-      </ul>
+      <div className="filters-container">
+        <div className="filter-group">
+          <label>Estado</label>
+          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
+            <option value="">Todos</option>
+            <option value="REQUESTED">Solicitado</option>
+            <option value="APPROVED">Aprobado</option>
+            <option value="DELIVERED">Entregado</option>
+            <option value="RETURNED">Devuelto</option>
+            <option value="EXPIRED">Vencido</option>
+          </select>
+        </div>
+
+        <div className="filter-group">
+          <label>Desde</label>
+          <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+        </div>
+
+        <div className="filter-group">
+          <label>Hasta</label>
+          <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+        </div>
+
+        <div className="filter-actions">
+          <button
+            className="btn btn-primary"
+            onClick={load}
+            disabled={loading}
+          >
+            {loading ? '⏳ Buscando...' : '🔍 Filtrar'}
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => {
+              setStatusFilter('');
+              setStartDate('');
+              setEndDate('');
+              load();
+            }}
+            disabled={loading}
+          >
+            🔄 Limpiar
+          </button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '40px' }}>
+          <p>⏳ Cargando préstamos...</p>
+        </div>
+      ) : (
+        <LoanTable loans={loans} onStatusChange={load} />
+      )}
 
     </Layout>
   );

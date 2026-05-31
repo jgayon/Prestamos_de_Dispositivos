@@ -38,10 +38,18 @@ export class DevicesService {
   async getAllDevices() {
     return this.repo.findAll();
   }
-  async create(data: { name: string; status: string }) {
-  return this.repo.create({
-    name: data.name,
-    status: data.status,
-  });
-}
+
+  async getAvailableDevices() {
+    return this.repo.findByStatus('AVAILABLE');
+  }
+
+  async deleteDevice(id: string) {
+    const device = await this.repo.findById(id);
+
+    if (!device) {
+      throw new NotFoundException('Dispositivo no encontrado');
+    }
+
+    return this.repo.delete(id);
+  }
 }

@@ -6,7 +6,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const logger = new Logger('DeviceService');
 
-  // Crear servidor HTTP para acceso directo
+  // Crear servidor HTTP para acceso directo (opcional)
   const app = await NestFactory.create(AppModule);
   
   // Habilitar CORS
@@ -33,11 +33,7 @@ async function bootstrap() {
 
   // Iniciar ambos (HTTP + TCP)
   await app.startAllMicroservices();
-  const httpPort = parseInt(process.env.DEVICE_SERVICE_HTTP_PORT || '3002');
-  await app.listen(httpPort);
-
   const tcpPort = parseInt(process.env.DEVICE_SERVICE_PORT || '3002');
-  logger.log(`✅ Device Service HTTP listening on port ${httpPort}`);
   logger.log(`📡 Device Service RPC (TCP) listening on port ${tcpPort}`);
   logger.log(`✅ CORS enabled for origin: ${process.env.CORS_ORIGIN || '*'}`);
 }

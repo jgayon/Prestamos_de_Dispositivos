@@ -22,7 +22,32 @@ export class LoansRpcController {
 }
 
   @MessagePattern({ cmd: 'get_loans' })
-  getLoans() {
-    return this.loansService.listLoans();
+  getLoans(@Payload() filters?: { status?: string; startDate?: string; endDate?: string }) {
+    return this.loansService.listLoans(filters);
+  }
+
+  @MessagePattern({ cmd: 'get_loan' })
+  getLoan(@Payload() data: { id: string }) {
+    return this.loansService.getLoanById(data.id);
+  }
+
+  @MessagePattern({ cmd: 'approve_loan' })
+  approveLoan(@Payload() data: { id: string }) {
+    return this.loansService.approveLoan(data.id);
+  }
+
+  @MessagePattern({ cmd: 'deliver_loan' })
+  deliverLoan(@Payload() data: { id: string }) {
+    return this.loansService.deliverLoan(data.id);
+  }
+
+  @MessagePattern({ cmd: 'return_loan' })
+  returnLoan(@Payload() data: { id: string }) {
+    return this.loansService.returnLoan(data.id);
+  }
+
+  @MessagePattern({ cmd: 'expire_loan' })
+  expireLoan(@Payload() data: { id: string }) {
+    return this.loansService.expireLoan(data.id);
   }
 }

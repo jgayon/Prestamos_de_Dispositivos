@@ -1,5 +1,6 @@
-import { Controller, Get, Post, Body, Param, Inject } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Inject, Put, Delete } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { firstValueFrom } from 'rxjs';
 
 @Controller('devices')
 export class DevicesController {
@@ -8,17 +9,44 @@ export class DevicesController {
   ) {}
 
   @Post()
-  create(@Body() data: any) {
-    return this.client.send('create_device' , data);
+  async create(@Body() data: any) {
+    return await firstValueFrom(
+      this.client.send('create_device', data)
+    );
   }
 
   @Get()
-  findAll() {
-    return this.client.send( 'get_all_devices' , {});
+  async findAll() {
+    return await firstValueFrom(
+      this.client.send('get_all_devices', {})
+    );
+  }
+
+  @Get('disponibles')
+  async findAvailable() {
+    return await firstValueFrom(
+      this.client.send('get_available_devices', {})
+    );
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.client.send( 'get_device', {id});
+  async findOne(@Param('id') id: string) {
+    return await firstValueFrom(
+      this.client.send('get_device', { id })
+    );
+  }
+
+  @Put(':id')
+  async update(@Param('id') id: string, @Body() data: any) {
+    return await firstValueFrom(
+      this.client.send('update_device_status', { id, ...data })
+    );
+  }
+
+  @Delete(':id')
+  async remove(@Param('id') id: string) {
+    return await firstValueFrom(
+      this.client.send('delete_device', { id })
+    );
   }
 }

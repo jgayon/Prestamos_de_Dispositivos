@@ -38,4 +38,12 @@ export class DeviceRepository implements OnModuleInit, OnModuleDestroy {
   findAll() {
     return this.prisma.device.findMany();
   }
+
+  findByStatus(status: string) {
+    return this.prisma.device.findMany({ where: { status } });
+  }
+
+  delete(id: string) {
+    return this.prisma.device.delete({ where: { id } });
+  }
 }
