@@ -154,15 +154,22 @@ cd backend
 ```
 npm install
 ```
-3. Configurar Prisma
+3. Configurar variables de entorno
+
+Copia el ejemplo de configuración y ajusta los valores si es necesario:
+```
+cp .env.example .env
+```
+
+4. Configurar Prisma
 ```
 npx prisma generate
 ```
-4. Ejecutar migraciones
+5. Ejecutar migraciones
 ```
 npx prisma migrate dev
 ```
-5. Iniciar el servidor
+6. Iniciar el servidor
 ```
 npm run start:dev
 ```

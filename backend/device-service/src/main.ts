@@ -2,6 +2,15 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Transport, MicroserviceOptions } from '@nestjs/microservices';
 import { Logger, ValidationPipe } from '@nestjs/common';
+import * as dotenv from 'dotenv';
+import { resolve } from 'path';
+
+dotenv.config();
+
+if (!process.env.DATABASE_URL) {
+  const dbPath = resolve('prisma', 'dev.db').replace(/\\/g, '/');
+  process.env.DATABASE_URL = `file:${dbPath}`;
+}
 
 async function bootstrap() {
   const logger = new Logger('DeviceService');

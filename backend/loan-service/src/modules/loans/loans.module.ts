@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { LoansController } from './loans.controller';
+import { LoansRpcController } from './loans.rpc.controller';
 import { LoansService } from './loans.service';
 import { LoanRepository } from './infrastructure/prisma/loan.repository';
 
@@ -20,7 +21,7 @@ import { LoanRepository } from './infrastructure/prisma/loan.repository';
       },
     ]),
   ],
-  controllers: [LoansController],
+  controllers: [LoansController, LoansRpcController],
   providers: [LoansService, LoanRepository]
 })
 export class LoansModule {}
