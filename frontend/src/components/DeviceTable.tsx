@@ -17,41 +17,45 @@ interface Props {
 }
 
 const DeviceTable: React.FC<Props> = ({ devices, onEdit, onDelete, onChangeStatus, loading }) => {
-	const [expandedId, setExpandedId] = useState<string | null>(null);
 
 	const getStatusBadgeClass = (status: string) => {
-		const s = status?.toLowerCase() || '';
-		if (s === 'available') return 'available';
-		if (s === 'in-use' || s === 'in_use') return 'in-use';
-		if (s === 'maintenance') return 'maintenance';
-		if (s === 'inactive') return 'inactive';
+		const s = status?.toUpperCase() || '';
+		if (s === 'AVAILABLE') return 'available';
+		if (s === 'LOANED') return 'in-use';
 		return 'available';
 	};
 
 	const getStatusLabel = (status: string) => {
 		const labels: Record<string, string> = {
-			'AVAILABLE': 'Disponible',
-			'IN_USE': 'En Uso',
-			'MAINTENANCE': 'Mantenimiento',
-			'INACTIVE': 'Inactivo',
+			AVAILABLE: 'Disponible',
+			LOANED: 'Prestado',
 		};
 		return labels[status] || status;
 	};
 
-	const getNextStatus = (currentStatus: string): { status: string; label: string } | null => {
-		const transitions: Record<string, { status: string; label: string }> = {
-			'AVAILABLE': { status: 'IN_USE', label: 'En Uso' },
-			'IN_USE': { status: 'MAINTENANCE', label: 'Mantenimiento' },
-			'MAINTENANCE': { status: 'AVAILABLE', label: 'Disponible' },
-			'INACTIVE': { status: 'AVAILABLE', label: 'Disponible' },
+	const getNextStatus = (currentStatus: string,): { status: string; label: string } | null => {
+
+		const transitions: Record<
+			string,
+			{ status: string; label: string }
+		> = {
+			AVAILABLE: {
+				status: 'LOANED',
+				label: 'Marcar Prestado',
+			},
+
+			LOANED: {
+				status: 'AVAILABLE',
+				label: 'Marcar Disponible',
+			},
 		};
+
 		return transitions[currentStatus] || null;
 	};
 
 	const handleChangeStatus = (deviceId: string, newStatus: string) => {
 		if (onChangeStatus) {
 			onChangeStatus(deviceId, newStatus);
-			setExpandedId(null);
 		}
 	};
 
@@ -76,8 +80,6 @@ const DeviceTable: React.FC<Props> = ({ devices, onEdit, onDelete, onChangeStatu
 				<tbody>
 					{devices.map((device) => {
 						const nextStatus = getNextStatus(device.status);
-						const isExpanded = expandedId === device.id;
-
 						return (
 							<tr key={device.id}>
 								<td>

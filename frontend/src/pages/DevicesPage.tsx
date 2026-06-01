@@ -88,7 +88,7 @@ const DevicesPage: React.FC = () => {
 
       {showForm && (
         <div style={{ marginBottom: '24px' }}>
-          <DeviceForm />
+          <DeviceForm onSuccess={handleDeviceCreated} />
         </div>
       )}
 

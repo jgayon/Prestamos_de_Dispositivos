@@ -3,7 +3,13 @@ import { useDevices } from '../hooks/useDevices';
 import ErrorMessage from './ErrorMessage';
 import LoadingSpinner from './LoadingSpinner';
 
-const DeviceForm: React.FC = () => {
+interface DeviceFormProps {
+  onSuccess?: () => void;
+}
+
+const DeviceForm: React.FC<DeviceFormProps> = ({
+  onSuccess,
+}) => {
   const { create, loading, error } = useDevices();
   const [name, setName] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -17,9 +23,18 @@ const DeviceForm: React.FC = () => {
     }
 
     try {
-      await create({ name: name.trim() });
-      setName('');
-      setSuccessMessage('Dispositivo creado exitosamente');
+      await create({
+      name: name.trim(),
+    });
+
+    setName('');
+    setSuccessMessage(
+      'Dispositivo creado exitosamente'
+    );
+
+    if (onSuccess) {
+      onSuccess();
+    }
       setTimeout(() => setSuccessMessage(''), 3000);
     } catch (err: any) {
       console.error('Error creating device:', err);

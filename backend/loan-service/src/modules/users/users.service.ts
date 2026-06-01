@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UsersRepository } from './users.repository';
 import { randomUUID } from 'crypto';
+import { NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class UsersService {
@@ -26,6 +27,13 @@ export class UsersService {
   }
 
   async deleteUser(id: string) {
+    const user = await this.usersRepository.findUserById(id);
+    if (!user) {
+      throw new NotFoundException(
+        'Usuario no encontrado',
+      );
+    }
+
     return this.usersRepository.deleteUser(id);
   }
 }
