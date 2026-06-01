@@ -76,7 +76,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             <p>lunes, 6 de abril de 2026</p>
           </div>
           <div className="topbar-right">
-            <button className="icon-btn">🔔</button>
             <div className="user-menu">
               <div className="user-avatar">{user?.name?.[0] || 'U'}</div>
               <div className="user-info">

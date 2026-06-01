@@ -113,18 +113,6 @@ const LoginPage: React.FC = () => {
             </button>
           </form>
 
-          <div className="demo-accounts">
-            <p>Cuentas de demostración (contraseña entre paréntesis):</p>
-            <button type="button" className="demo-btn" onClick={() => { setEmail('carlos.mendoza@empresa.com'); setPassword('admin123'); }}>
-              Administrador<br /><span>carlos.mendoza@empresa.com</span><br /><small>contraseña: admin123</small>
-            </button>
-            <button type="button" className="demo-btn" onClick={() => { setEmail('ana.ramirez@empresa.com'); setPassword('user1234'); }}>
-              Usuario Final<br /><span>ana.ramirez@empresa.com</span><br /><small>contraseña: user1234</small>
-            </button>
-            <p style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '8px' }}>
-              Si creaste un usuario en el panel, usa ese email y la contraseña que definiste al crearlo.
-            </p>
-          </div>
         </div>
       </div>
     </div>

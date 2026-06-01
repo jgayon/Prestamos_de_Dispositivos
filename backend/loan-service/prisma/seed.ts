@@ -1,5 +1,25 @@
+import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import { createHash, randomBytes } from 'crypto';
+import { existsSync } from 'fs';
+import { join } from 'path';
+
+dotenv.config();
+
+// Ensure DATABASE_URL points to the local prisma/dev.db like the service does
+function resolveDatabaseUrl(): string {
+  const candidates = [
+    join(process.cwd(), 'prisma', 'dev.db'),
+    join(process.cwd(), 'backend', 'loan-service', 'prisma', 'dev.db'),
+  ];
+
+  const dbFile = (candidates.find((p) => existsSync(p)) ?? candidates[0]).replace(/\\/g, '/');
+  return `file:${dbFile}`;
+}
+
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = resolveDatabaseUrl();
+}
 
 const prisma = new PrismaClient();
 

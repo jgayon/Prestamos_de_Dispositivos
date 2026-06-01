@@ -4,7 +4,13 @@ import { randomUUID } from 'crypto';
 
 @Injectable()
 export class DeviceRepository implements OnModuleInit, OnModuleDestroy {
-  private prisma = new PrismaClient();
+  // Force Prisma to use the explicit DATABASE_URL at runtime to avoid
+  // picking a different .env or relative path when the service runs.
+  private prisma = new PrismaClient({
+    datasources: {
+      db: { url: process.env.DATABASE_URL || undefined },
+    },
+  });
 
   async onModuleInit() {
     await this.prisma.$connect();
