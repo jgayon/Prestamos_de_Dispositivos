@@ -6,7 +6,8 @@ import './layout.css';
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
+  const roleLabel = isAdmin ? 'Administrador' : 'Usuario';
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -28,7 +29,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <div className="profile-avatar">{user?.name?.[0] || 'U'}</div>
           <div className="profile-info">
             <h4>{user?.name || 'Usuario'}</h4>
-            <p>Admin</p>
+            <p>{roleLabel}</p>
           </div>
         </div>
 
@@ -40,18 +41,27 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <Link to="/loans" className={`nav-link ${isActive('/loans') ? 'active' : ''}`}>
             <span>📝</span> Préstamos <span className="badge-count">3</span>
           </Link>
-          <Link to="/devices" className={`nav-link ${isActive('/devices') ? 'active' : ''}`}>
-            <span>💻</span> Dispositivos
-          </Link>
-          <Link to="/users" className={`nav-link ${isActive('/users') ? 'active' : ''}`}>
-            <span>👥</span> Usuarios
-          </Link>
+          {isAdmin ? (
+            <Link to="/devices" className={`nav-link ${isActive('/devices') ? 'active' : ''}`}>
+              <span>💻</span> Dispositivos
+            </Link>
+          ) : (
+            <span className="nav-link disabled" title="Solo administradores">
+              <span>💻</span> Dispositivos
+            </span>
+          )}
+          {isAdmin ? (
+            <Link to="/users" className={`nav-link ${isActive('/users') ? 'active' : ''}`}>
+              <span>👥</span> Usuarios
+            </Link>
+          ) : (
+            <span className="nav-link disabled" title="Solo administradores">
+              <span>👥</span> Usuarios
+            </span>
+          )}
         </nav>
 
         <div className="sidebar-footer">
-          <button className="btn-footer" onClick={() => alert('Cambiar usuario')}>
-            🔄 Cambiar a Usuario
-          </button>
           <button className="btn-footer btn-logout" onClick={() => { logout(); navigate('/'); }}>
             🚪 Cerrar sesión
           </button>
@@ -71,7 +81,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
               <div className="user-avatar">{user?.name?.[0] || 'U'}</div>
               <div className="user-info">
                 <p>{user?.name || 'Usuario'}</p>
-                <span>Admin</span>
+                <span>{roleLabel}</span>
               </div>
             </div>
           </div>

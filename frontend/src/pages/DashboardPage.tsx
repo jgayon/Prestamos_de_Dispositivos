@@ -5,6 +5,7 @@ import { getDevices } from '../api/devices.api';
 import { getUsers } from '../api/users.api';
 import Layout from '../components/Layout';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 interface Stats {
   total: number;
@@ -22,14 +23,22 @@ const DashboardPage: React.FC = () => {
   const [recentLoans, setRecentLoans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { isAdmin, user } = useAuth();
 
   useEffect(() => {
-    Promise.all([
-      getLoans(),
-      getDevices(),
-      getUsers(),
-    ]).then(([loansRes, devicesRes, usersRes]) => {
-      const loans: any[] = loansRes.data || [];
+    const requests: Promise<any>[] = [getLoans()];
+    if (isAdmin) {
+      requests.push(getDevices(), getUsers());
+    }
+
+    Promise.all(requests).then((results) => {
+      const loansRes = results[0];
+      const devicesRes = isAdmin ? results[1] : { data: [] };
+      const usersRes = isAdmin ? results[2] : { data: [] };
+      let loans: any[] = loansRes.data || [];
+      if (!isAdmin && user?.id) {
+        loans = loans.filter((l) => l.userId === user.id);
+      }
       const devices: any[] = devicesRes.data || [];
       const users: any[] = usersRes.data || [];
 
@@ -50,7 +59,7 @@ const DashboardPage: React.FC = () => {
     }).catch(err => {
       console.error(err);
     }).finally(() => setLoading(false));
-  }, []);
+  }, [isAdmin]);
 
   const statCards = [
     { label: 'Total préstamos', value: stats.total,     icon: '📋', color: '#3b82f6', bg: '#dbeafe' },
@@ -94,20 +103,24 @@ const DashboardPage: React.FC = () => {
           <>
             {/* Summary row */}
             <div style={styles.summaryRow}>
-              <div style={styles.summaryCard}>
-                <span style={styles.summaryIcon}>💻</span>
-                <div>
-                  <p style={styles.summaryValue}>{deviceCount}</p>
-                  <p style={styles.summaryLabel}>Dispositivos</p>
-                </div>
-              </div>
-              <div style={styles.summaryCard}>
-                <span style={styles.summaryIcon}>👥</span>
-                <div>
-                  <p style={styles.summaryValue}>{userCount}</p>
-                  <p style={styles.summaryLabel}>Usuarios</p>
-                </div>
-              </div>
+              {isAdmin && (
+                <>
+                  <div style={styles.summaryCard}>
+                    <span style={styles.summaryIcon}>💻</span>
+                    <div>
+                      <p style={styles.summaryValue}>{deviceCount}</p>
+                      <p style={styles.summaryLabel}>Dispositivos</p>
+                    </div>
+                  </div>
+                  <div style={styles.summaryCard}>
+                    <span style={styles.summaryIcon}>👥</span>
+                    <div>
+                      <p style={styles.summaryValue}>{userCount}</p>
+                      <p style={styles.summaryLabel}>Usuarios</p>
+                    </div>
+                  </div>
+                </>
+              )}
               <div style={styles.summaryCard}>
                 <span style={styles.summaryIcon}>📋</span>
                 <div>

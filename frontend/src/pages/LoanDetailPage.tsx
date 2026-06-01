@@ -3,11 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getLoan } from "../api/loans.api";
 import Layout from "../components/Layout";
 import LoanStatusActions from "../components/LoanStatusActions";
+import { useAuth } from "../context/AuthContext";
 import '../styles/forms.css';
 
 const LoanDetailPage = () => {
 	const { id } = useParams();
 	const navigate = useNavigate();
+	const { isAdmin } = useAuth();
 	const [loan, setLoan] = useState<any | null>(null);
 	const [loading, setLoading] = useState(true);
 
@@ -136,14 +138,20 @@ const LoanDetailPage = () => {
 						</div>
 					</div>
 
-					<div style={{ backgroundColor: '#f9fafb', padding: '16px', borderRadius: '6px', marginBottom: '24px' }}>
-						<p style={{ margin: '0 0 12px 0', fontWeight: '600', color: '#1a2847' }}>Acciones Disponibles</p>
-						<LoanStatusActions
-							loanId={loan.id}
-							currentState={status}
-							onChanged={loadLoan}
-						/>
-					</div>
+					{isAdmin ? (
+						<div style={{ backgroundColor: '#f9fafb', padding: '16px', borderRadius: '6px', marginBottom: '24px' }}>
+							<p style={{ margin: '0 0 12px 0', fontWeight: '600', color: '#1a2847' }}>Acciones Disponibles</p>
+							<LoanStatusActions
+								loanId={loan.id}
+								currentState={status}
+								onChanged={loadLoan}
+							/>
+						</div>
+					) : (
+						<p style={{ color: '#6b7280', fontSize: '0.9rem', marginBottom: '24px' }}>
+							Tu solicitud está en revisión. Un administrador actualizará el estado del préstamo.
+						</p>
+					)}
 
 					<div className="form-actions">
 						<button className="btn btn-secondary" onClick={() => navigate('/loans')}>

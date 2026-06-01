@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
+import { useAuth } from '../context/AuthContext';
 import DeviceTable from '../components/DeviceTable';
 import DeviceForm from '../components/DeviceForm';
 import { getDevices, updateDevice, deleteDevice } from '../api/devices.api';
 import '../styles/forms.css';
 
 const DevicesPage: React.FC = () => {
+  const { isAdmin } = useAuth();
+  const navigate = useNavigate();
   const [devices, setDevices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -27,8 +31,12 @@ const DevicesPage: React.FC = () => {
   };
 
   useEffect(() => {
+    if (!isAdmin) {
+      navigate('/loans');
+      return;
+    }
     loadDevices();
-  }, []);
+  }, [isAdmin]);
 
   const handleChangeStatus = async (deviceId: string, newStatus: string) => {
     setLoading(true);
@@ -60,6 +68,8 @@ const DevicesPage: React.FC = () => {
     setShowForm(false);
     loadDevices();
   };
+
+  if (!isAdmin) return null;
 
   return (
     <Layout>

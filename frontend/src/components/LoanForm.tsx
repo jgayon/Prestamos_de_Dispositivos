@@ -3,6 +3,7 @@ import { getUsers } from '../api/users.api';
 import { getAvailableDevices } from '../api/devices.api';
 import { createLoan } from '../api/loans.api';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import ErrorMessage from './ErrorMessage';
 import LoadingSpinner from './LoadingSpinner';
 import '../styles/forms.css';
@@ -20,11 +21,20 @@ const LoanForm: React.FC = () => {
 	const [success, setSuccess] = useState('');
 	const [errors, setErrors] = useState<Record<string, string>>({});
 	const navigate = useNavigate();
+	const { user, isAdmin } = useAuth();
+
+	useEffect(() => {
+		if (!isAdmin && user?.id) {
+			setUserId(user.id);
+		}
+	}, [isAdmin, user?.id]);
 
 	useEffect(() => {
 		const loadData = async () => {
 			try {
-				const usersRes = await getUsers().catch(() => ({ data: [] }));
+				const usersRes = isAdmin
+					? await getUsers().catch(() => ({ data: [] }))
+					: { data: user ? [user] : [] };
 				const devicesRes = await getAvailableDevices().catch(() => ({ data: [] }));
 				setUsers(usersRes.data || []);
 				setDevices(devicesRes.data || []);
@@ -101,20 +111,30 @@ const LoanForm: React.FC = () => {
 			<form onSubmit={submit}>
 				<div className="form-group">
 					<label htmlFor="userId">Usuario *</label>
-					<select
-						id="userId"
-						value={userId}
-						onChange={e => setUserId(e.target.value)}
-						disabled={loading}
-						style={{ borderColor: errors.userId ? '#dc2626' : undefined }}
-					>
-						<option value="">Seleccione un usuario</option>
-						{users.map(u => (
-							<option key={u.id} value={u.id}>
-								{u.name} ({u.email})
-							</option>
-						))}
-					</select>
+					{isAdmin ? (
+						<select
+							id="userId"
+							value={userId}
+							onChange={e => setUserId(e.target.value)}
+							disabled={loading}
+							style={{ borderColor: errors.userId ? '#dc2626' : undefined }}
+						>
+							<option value="">Seleccione un usuario</option>
+							{users.map(u => (
+								<option key={u.id} value={u.id}>
+									{u.name} ({u.email})
+								</option>
+							))}
+						</select>
+					) : (
+						<input
+							id="userId"
+							type="text"
+							value={user?.name ? `${user.name} (${user.email})` : ''}
+							disabled
+							readOnly
+						/>
+					)}
 					{errors.userId && <div className="form-error">{errors.userId}</div>}
 				</div>
 

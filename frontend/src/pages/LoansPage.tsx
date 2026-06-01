@@ -3,10 +3,11 @@ import { getLoans } from "../api/loans.api";
 import Layout from "../components/Layout";
 import LoanTable from "../components/LoanTable";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import '../styles/forms.css';
 
 const LoansList = () => {
-
+  const { user, isAdmin } = useAuth();
   const [loans, setLoans] = useState<any[]>([]);
   const [statusFilter, setStatusFilter] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -22,7 +23,11 @@ const LoansList = () => {
       if (startDate) params.append('startDate', startDate);
       if (endDate) params.append('endDate', endDate);
       const response = await getLoans(params.toString());
-      setLoans(response.data || []);
+      let data = response.data || [];
+      if (!isAdmin && user?.id) {
+        data = data.filter((l: any) => l.userId === user.id);
+      }
+      setLoans(data);
     } catch (error) {
       console.error('Error loading loans:', error);
       setLoans([]);
@@ -33,7 +38,7 @@ const LoansList = () => {
 
   useEffect(() => {
     load();
-  }, []);
+  }, [isAdmin, user?.id]);
 
   return (
     <Layout>

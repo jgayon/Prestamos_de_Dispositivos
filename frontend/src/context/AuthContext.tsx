@@ -3,6 +3,7 @@ import api from '../api/api';
 
 interface AuthContextType {
   isLoggedIn: boolean;
+  isAdmin: boolean;
   user: any | null;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -63,8 +64,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
+  const isAdmin = user?.role === 'ADMIN';
+
   return (
-    <AuthContext.Provider value={{ isLoggedIn, user, login, logout }}>
+    <AuthContext.Provider value={{ isLoggedIn, isAdmin, user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

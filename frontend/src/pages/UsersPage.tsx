@@ -1,17 +1,25 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import UserTable from '../components/UserTable';
 import UserForm from '../components/UserForm';
 import { useUsers } from '../hooks/useUsers';
+import { useAuth } from '../context/AuthContext';
 import '../styles/forms.css';
 
 const UsersPage: React.FC = () => {
+  const { isAdmin } = useAuth();
+  const navigate = useNavigate();
   const { users, loading, error, fetchUsers, remove } = useUsers();
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
+    if (!isAdmin) {
+      navigate('/loans');
+      return;
+    }
     fetchUsers();
-  }, []);
+  }, [isAdmin]);
 
   const handleDelete = async (userId: string) => {
     try {
@@ -25,6 +33,8 @@ const UsersPage: React.FC = () => {
     setShowForm(false);
     fetchUsers();
   };
+
+  if (!isAdmin) return null;
 
   return (
     <Layout>
