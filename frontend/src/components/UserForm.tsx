@@ -12,6 +12,7 @@ interface Props {
 const UserForm: React.FC<Props> = ({ onSuccess, onCancel }) => {
 	const [name, setName] = useState('');
 	const [email, setEmail] = useState('');
+	const [password, setPassword] = useState('');
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState('');
 	const [success, setSuccess] = useState('');
@@ -27,6 +28,11 @@ const UserForm: React.FC<Props> = ({ onSuccess, onCancel }) => {
 			newErrors.email = 'El email es requerido';
 		} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
 			newErrors.email = 'El email no es válido';
+		}
+		if (!password.trim()) {
+			newErrors.password = 'La contraseña es requerida';
+		} else if (password.length < 6) {
+			newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
 		}
 
 		setErrors(newErrors);
@@ -44,10 +50,11 @@ const UserForm: React.FC<Props> = ({ onSuccess, onCancel }) => {
 
 		setLoading(true);
 		try {
-			await createUser({ name: name.trim(), email: email.trim() });
+			await createUser({ name: name.trim(), email: email.trim(), password: password.trim() });
 			setSuccess('✓ Usuario creado exitosamente');
 			setName('');
 			setEmail('');
+			setPassword('');
 			setTimeout(() => {
 				setSuccess('');
 				if (onSuccess) onSuccess();
@@ -94,6 +101,20 @@ const UserForm: React.FC<Props> = ({ onSuccess, onCancel }) => {
 					style={{ borderColor: errors.email ? '#dc2626' : undefined }}
 				/>
 				{errors.email && <div className="form-error">{errors.email}</div>}
+			</div>
+
+			<div className="form-group">
+				<label htmlFor="password">Contraseña *</label>
+				<input
+					id="password"
+					type="password"
+					value={password}
+					onChange={(e) => setPassword(e.target.value)}
+					placeholder="Mínimo 6 caracteres"
+					disabled={loading}
+					style={{ borderColor: errors.password ? '#dc2626' : undefined }}
+				/>
+				{errors.password && <div className="form-error">{errors.password}</div>}
 			</div>
 
 			<div className="form-actions">

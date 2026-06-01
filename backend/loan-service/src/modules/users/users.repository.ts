@@ -5,7 +5,7 @@ import { PrismaClient } from '@prisma/client';
 export class UsersRepository {
   private prisma = new PrismaClient();
 
-  async createUser(data: { id?: string; name: string; email: string }) {
+  async createUser(data: { id?: string; name: string; email: string; password: string }) {
     try {
     return await this.prisma.user.create({
       data,

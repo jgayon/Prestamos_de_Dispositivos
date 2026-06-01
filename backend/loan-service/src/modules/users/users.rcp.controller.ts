@@ -7,8 +7,8 @@ export class UsersRpcController {
   constructor(private readonly usersService: UsersService) {}
 
   @MessagePattern({ cmd: 'create_user' })
-  createUser(@Payload() data: { name: string; email: string }) {
-    return this.usersService.createUser(data.name, data.email);
+  createUser(@Payload() data: { name: string; email: string; password: string }) {
+    return this.usersService.createUser(data.name, data.email, data.password);
   }
 
   @MessagePattern({ cmd: 'get_users' })

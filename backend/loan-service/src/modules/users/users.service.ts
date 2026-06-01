@@ -1,14 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UsersRepository } from './users.repository';
 import { randomUUID } from 'crypto';
+import { hashPassword } from '../../utils/password.utils';
 
 @Injectable()
 export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
-  async createUser(name: string, email: string) {
+  async createUser(name: string, email: string, password: string) {
     const id = randomUUID();
-    return this.usersRepository.createUser({ id, name, email });
+    const hashedPassword = await hashPassword(password);
+    return this.usersRepository.createUser({ id, name, email, password: hashedPassword });
   }
 
   async getUserById(id: string) {
