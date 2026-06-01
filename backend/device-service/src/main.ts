@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Transport, MicroserviceOptions } from '@nestjs/microservices';
 import { Logger, ValidationPipe } from '@nestjs/common';
-import * as dotenv from 'dotenv';
+import dotenv from 'dotenv';
 import { resolve } from 'path';
 
 dotenv.config();
