@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { Logger, ValidationPipe } from '@nestjs/common';
+import { BadRequestException, Logger, ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const logger = new Logger('APIGateway');
@@ -15,10 +15,18 @@ async function bootstrap() {
     allowedHeaders: 'Content-Type,Authorization',
   });
 
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      exceptionFactory: (errors) => {
+        const messages = errors.flatMap((e) =>
+          e.constraints ? Object.values(e.constraints) : [],
+        );
+        return new BadRequestException(messages);
+      },
+    }),
+  );
 
   const port = parseInt(process.env.GATEWAY_PORT || '3000');
   await app.listen(port);

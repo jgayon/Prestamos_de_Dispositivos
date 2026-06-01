@@ -11,6 +11,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  role?: 'ADMIN' | 'USER';
   createdAt?: string;
 }
 
@@ -48,7 +49,12 @@ export const useUsers = () => {
     }
   }, []);
 
-  const create = useCallback(async (data: { name: string; email: string }): Promise<User | null> => {
+  const create = useCallback(async (data: {
+    name: string;
+    email: string;
+    password: string;
+    role?: 'ADMIN' | 'USER';
+  }): Promise<User | null> => {
     setLoading(true);
     setError(null);
     try {

@@ -9,6 +9,7 @@ import { DevicesController } from './devices.controller';
 import { LoansController } from './loans.controller';
 import { AuthService } from './auth/auth.service';
 import { JwtStrategy } from './auth/jwt.strategy';
+import { MicroservicesConnectService } from './microservices-connect.service';
 
 @Module({
   imports: [
@@ -44,6 +45,6 @@ import { JwtStrategy } from './auth/jwt.strategy';
     ]),
   ],
   controllers: [AppController, UsersController, DevicesController, LoansController],
-  providers: [AppService, AuthService, JwtStrategy],
+  providers: [AppService, AuthService, JwtStrategy, MicroservicesConnectService],
 })
 export class AppModule {}

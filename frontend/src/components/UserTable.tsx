@@ -5,6 +5,7 @@ interface User {
 	id: string;
 	name: string;
 	email: string;
+	role?: string;
 	createdAt?: string;
 }
 
@@ -40,6 +41,7 @@ const UserTable: React.FC<Props> = ({ users, onEdit, onDelete, loading }) => {
 					<tr>
 						<th>Usuario</th>
 						<th>Email</th>
+						<th>Rol</th>
 						<th>Acciones</th>
 					</tr>
 				</thead>
@@ -72,6 +74,21 @@ const UserTable: React.FC<Props> = ({ users, onEdit, onDelete, loading }) => {
 								<a href={`mailto:${user.email}`} style={{ color: '#FF8C42', textDecoration: 'none' }}>
 									{user.email}
 								</a>
+							</td>
+							<td>
+								<span
+									style={{
+										display: 'inline-block',
+										padding: '4px 10px',
+										borderRadius: '999px',
+										fontSize: '0.75rem',
+										fontWeight: 600,
+										backgroundColor: user.role === 'ADMIN' ? '#dbeafe' : '#f3f4f6',
+										color: user.role === 'ADMIN' ? '#1d4ed8' : '#374151',
+									}}
+								>
+									{user.role === 'ADMIN' ? 'Administrador' : 'Usuario'}
+								</span>
 							</td>
 							<td>
 								<div className="table-actions">

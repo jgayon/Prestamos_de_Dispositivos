@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { createUser } from '../api/users.api';
+import type { UserRole } from '../types/User';
 import ErrorMessage from './ErrorMessage';
 import LoadingSpinner from './LoadingSpinner';
 import '../styles/forms.css';
@@ -13,6 +14,7 @@ const UserForm: React.FC<Props> = ({ onSuccess, onCancel }) => {
 	const [name, setName] = useState('');
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
+	const [role, setRole] = useState<UserRole>('USER');
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState('');
 	const [success, setSuccess] = useState('');
@@ -50,11 +52,17 @@ const UserForm: React.FC<Props> = ({ onSuccess, onCancel }) => {
 
 		setLoading(true);
 		try {
-			await createUser({ name: name.trim(), email: email.trim(), password: password.trim() });
+			await createUser({
+				name: name.trim(),
+				email: email.trim(),
+				password: password.trim(),
+				role,
+			});
 			setSuccess('✓ Usuario creado exitosamente');
 			setName('');
 			setEmail('');
 			setPassword('');
+			setRole('USER');
 			setTimeout(() => {
 				setSuccess('');
 				if (onSuccess) onSuccess();
@@ -115,6 +123,20 @@ const UserForm: React.FC<Props> = ({ onSuccess, onCancel }) => {
 					style={{ borderColor: errors.password ? '#dc2626' : undefined }}
 				/>
 				{errors.password && <div className="form-error">{errors.password}</div>}
+				<p className="form-hint">Esta contraseña se usará para iniciar sesión en la plataforma.</p>
+			</div>
+
+			<div className="form-group">
+				<label htmlFor="role">Tipo de usuario *</label>
+				<select
+					id="role"
+					value={role}
+					onChange={(e) => setRole(e.target.value as UserRole)}
+					disabled={loading}
+				>
+					<option value="USER">Usuario (solicita préstamos)</option>
+					<option value="ADMIN">Administrador</option>
+				</select>
 			</div>
 
 			<div className="form-actions">

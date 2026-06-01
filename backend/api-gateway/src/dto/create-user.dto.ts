@@ -1,4 +1,4 @@
-import { IsString, IsEmail, Length, MinLength } from 'class-validator';
+import { IsEmail, IsIn, IsOptional, IsString, Length, MinLength } from 'class-validator';
 
 export class CreateUserDTO {
   @IsString()
@@ -11,6 +11,13 @@ export class CreateUserDTO {
   @IsString()
   @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
   password: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['ADMIN', 'USER', 'admin', 'user'], {
+    message: 'El rol debe ser ADMIN o USER',
+  })
+  role?: string;
 }
 
 export class LoginDTO {
@@ -18,6 +25,6 @@ export class LoginDTO {
   email: string;
 
   @IsString()
-  @MinLength(6, { message: 'La contraseña debe tener al menos 6 caracteres' })
+  @MinLength(1, { message: 'La contraseña es requerida' })
   password: string;
 }

@@ -1,13 +1,31 @@
-import { Controller, Get, Post, Put, Delete, Body, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Post('auth/validate')
+  async validateCredentials(@Body() body: { email: string; password: string }) {
+    const user = await this.usersService.validateCredentials(body.email, body.password);
+    if (!user) {
+      throw new UnauthorizedException('Credenciales incorrectas');
+    }
+    return user;
+  }
+
   @Post()
-  create(@Body() body: { name: string; email: string; password: string }) {
-    return this.usersService.createUser(body.name, body.email, body.password);
+  create(@Body() body: { name: string; email: string; password: string; role?: string }) {
+    return this.usersService.createUser(body.name, body.email, body.password, body.role);
   }
 
   @Get()

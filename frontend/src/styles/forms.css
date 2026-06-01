@@ -47,6 +47,12 @@
   cursor: not-allowed;
 }
 
+.form-hint {
+  margin-top: 6px;
+  font-size: 0.8125rem;
+  color: #6b7280;
+}
+
 .form-error {
   color: #dc2626;
   font-size: 0.875rem;

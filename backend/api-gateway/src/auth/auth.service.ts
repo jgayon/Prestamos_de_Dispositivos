@@ -1,62 +1,67 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcryptjs';
 
-interface User {
+export interface AuthUser {
   id: string;
   name: string;
   email: string;
-  password: string;
+  role: string;
 }
-
-// Demo users with hashed passwords
-const DEMO_USERS: User[] = [
-  {
-    id: '1',
-    name: 'Juan Pérez',
-    email: 'juan@ejemplo.com',
-    password: '$2a$10$gEz5qMLhCvVG8fL9v8.1yOLz5L9Z8Y8Z8Y8Z8Y8Z8Y8Z8Y8Z8Y8Z8', // 'password123'
-  },
-  {
-    id: '2',
-    name: 'Carlos Mendoza',
-    email: 'carlos.mendoza@empresa.com',
-    password: '$2a$10$gEz5qMGfL9v8fL9v8.1yOLz5L9Z8Y8Z8Y8Z8Y8Z8Y8Z8Y8Z8Y8Z8', // 'admin'
-  },
-  {
-    id: '3',
-    name: 'Ana Ramirez',
-    email: 'ana.ramirez@empresa.com',
-    password: '$2a$10$gEz5qMGfL9v8fL9v8.1yOLz5L9Z8Y8Z8Y8Z8Y8Z8Y8Z8Y8Z8Y8Z8', // 'user'
-  },
-];
 
 @Injectable()
 export class AuthService {
   constructor(private jwtService: JwtService) {}
 
-  async validateUser(email: string, password: string): Promise<User> {
-    const user = DEMO_USERS.find((u) => u.email === email);
+  private getLoanServiceUrl(): string {
+    if (process.env.LOAN_SERVICE_HTTP_URL) {
+      return process.env.LOAN_SERVICE_HTTP_URL.replace(/\/$/, '');
+    }
+    const host = process.env.LOAN_SERVICE_HOST || 'localhost';
+    const port = process.env.LOAN_SERVICE_PORT || '3001';
+    return `http://${host}:${port}`;
+  }
 
-    if (!user) {
+  async validateUser(email: string, password: string): Promise<AuthUser> {
+    const url = `${this.getLoanServiceUrl()}/users/auth/validate`;
+
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+    } catch (err) {
+      console.error('Loan service HTTP unreachable:', err);
+      throw new UnauthorizedException(
+        'No se puede conectar al Loan Service. Ejecuta: cd backend/loan-service && npm run start:dev',
+      );
+    }
+
+    if (response.status === 401) {
       throw new UnauthorizedException('Credenciales incorrectas');
     }
 
-    // Para desarrollo: aceptar contraseña coincidente OR hash válido
-    const isPasswordValid = password === 'password123' || password === 'admin' || password === 'user';
+    if (!response.ok) {
+      const body = await response.text();
+      console.error('Validate credentials failed:', response.status, body);
+      throw new UnauthorizedException('Error al validar credenciales');
+    }
 
-    if (!isPasswordValid) {
+    const user = (await response.json()) as AuthUser;
+    if (!user?.id) {
       throw new UnauthorizedException('Credenciales incorrectas');
     }
 
     return user;
   }
 
-  async login(user: User) {
+  async login(user: AuthUser) {
     const payload = {
       sub: user.id,
       email: user.email,
       name: user.name,
+      role: user.role,
       iat: Math.floor(Date.now() / 1000),
     };
 
@@ -68,11 +73,12 @@ export class AuthService {
     return {
       success: true,
       access_token: token,
-      token: token,
+      token,
       user: {
         id: user.id,
         email: user.email,
         name: user.name,
+        role: user.role,
       },
     };
   }
@@ -82,7 +88,7 @@ export class AuthService {
       return this.jwtService.verify(token, {
         secret: process.env.JWT_SECRET || 'super-secret-key-change-in-production',
       });
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Token inválido o expirado');
     }
   }

@@ -16,9 +16,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
     if (token) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setIsLoggedIn(true);
+      if (savedUser) {
+        try {
+          setUser(JSON.parse(savedUser));
+        } catch {
+          localStorage.removeItem('user');
+        }
+      }
     }
   }, []);
 
@@ -31,18 +39,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       const token = res.data.token;
+      const loggedUser = res.data.user || { email };
       localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(loggedUser));
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       setIsLoggedIn(true);
-      setUser(res.data.user || { email });
+      setUser(loggedUser);
     } catch (err: any) {
       console.error('Auth error:', err);
-      throw new Error(err?.response?.data?.message || err.message || 'Error de autenticación');
+      const raw = err?.response?.data?.message;
+      const message = Array.isArray(raw)
+        ? raw.join(', ')
+        : raw || err.message || 'Error de autenticación';
+      throw new Error(message);
     }
   };
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     delete api.defaults.headers.common['Authorization'];
     setIsLoggedIn(false);
     setUser(null);

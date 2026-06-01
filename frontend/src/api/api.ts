@@ -42,7 +42,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // No autorizado - limpiar token y redirigir a login
       localStorage.removeItem("token");
-      window.location.href = "/login";
+      window.location.href = "/";
       console.error("❌ Sesión expirada. Redirigiendo a login.");
     }
 

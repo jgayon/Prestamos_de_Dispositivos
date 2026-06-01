@@ -3,14 +3,10 @@ import { AppModule } from './app.module';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { Transport, MicroserviceOptions } from '@nestjs/microservices';
 import dotenv from 'dotenv';
-import { resolve } from 'path';
+import { ensureDatabaseUrl } from './config/database';
 
 dotenv.config();
-
-if (!process.env.DATABASE_URL) {
-  const dbPath = resolve('prisma', 'dev.db').replace(/\\/g, '/');
-  process.env.DATABASE_URL = `file:${dbPath}`;
-}
+ensureDatabaseUrl();
 
 async function bootstrap() {
   const logger = new Logger('LoanService');
@@ -45,6 +41,7 @@ async function bootstrap() {
   const port = parseInt(process.env.LOAN_SERVICE_PORT || '3001');
   await app.listen(port);
 
+  logger.log(`📁 DATABASE_URL=${process.env.DATABASE_URL}`);
   logger.log(`🚀 Loan Service HTTP listening on port ${port}`);
   logger.log(`🚀 Loan Service RPC (TCP) listening on port ${process.env.LOAN_SERVICE_RPC_PORT || 3011}`);
   logger.log(`✅ CORS enabled for origin: ${process.env.CORS_ORIGIN || '*'}`);

@@ -7,8 +7,15 @@ export class UsersRpcController {
   constructor(private readonly usersService: UsersService) {}
 
   @MessagePattern({ cmd: 'create_user' })
-  createUser(@Payload() data: { name: string; email: string; password: string }) {
-    return this.usersService.createUser(data.name, data.email, data.password);
+  createUser(
+    @Payload() data: { name: string; email: string; password: string; role?: string },
+  ) {
+    return this.usersService.createUser(data.name, data.email, data.password, data.role);
+  }
+
+  @MessagePattern({ cmd: 'validate_user_credentials' })
+  validateCredentials(@Payload() data: { email: string; password: string }) {
+    return this.usersService.validateCredentials(data.email, data.password);
   }
 
   @MessagePattern({ cmd: 'get_users' })
@@ -22,8 +29,9 @@ export class UsersRpcController {
   }
 
   @MessagePattern({ cmd: 'update_user' })
-  updateUser(@Payload() data: { id: string; name?: string; email?: string }) {
-    return this.usersService.updateUser(data.id, { name: data.name, email: data.email });
+  updateUser(@Payload() data: { id: string; name?: string; email?: string; role?: string }) {
+    const { id, name, email, role } = data;
+    return this.usersService.updateUser(id, { name, email, role });
   }
 
   @MessagePattern({ cmd: 'delete_user' })

@@ -1,10 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import { ensureDatabaseUrl } from '../../../../config/database';
 
 @Injectable()
 export class LoanRepository {
+  private prisma: PrismaClient;
 
-  private prisma = new PrismaClient();
+  constructor() {
+    ensureDatabaseUrl();
+    this.prisma = new PrismaClient();
+  }
 
   async createLoan(data: {
     id: string;

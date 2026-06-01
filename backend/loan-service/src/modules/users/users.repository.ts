@@ -1,28 +1,50 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
+import { ensureDatabaseUrl } from '../../config/database';
 
 @Injectable()
-export class UsersRepository {
-  private prisma = new PrismaClient();
+export class UsersRepository implements OnModuleInit, OnModuleDestroy {
+  private prisma: PrismaClient;
 
-  async createUser(data: { id?: string; name: string; email: string; password: string }) {
-    try {
-    return await this.prisma.user.create({
-      data,
-    });
-  } catch (error) {
-    if (error.code === 'P2002') {
-      throw new Error('El email ya está registrado');
-    }
-    throw error;
+  constructor() {
+    ensureDatabaseUrl();
+    this.prisma = new PrismaClient();
   }
+
+  async onModuleInit() {
+    await this.prisma.$connect();
+  }
+
+  async onModuleDestroy() {
+    await this.prisma.$disconnect();
+  }
+
+  async createUser(data: {
+    id?: string;
+    name: string;
+    email: string;
+    password: string;
+    role?: string;
+  }) {
+    try {
+      return await this.prisma.user.create({ data });
+    } catch (error: any) {
+      if (error.code === 'P2002') {
+        throw new Error('El email ya está registrado');
+      }
+      throw error;
+    }
   }
 
   async findUserById(id: string) {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
-  async updateUser(id: string, data: any) {
+  async findUserByEmail(email: string) {
+    return this.prisma.user.findUnique({ where: { email } });
+  }
+
+  async updateUser(id: string, data: { name?: string; email?: string; role?: string }) {
     return this.prisma.user.update({ where: { id }, data });
   }
 
@@ -31,6 +53,6 @@ export class UsersRepository {
   }
 
   async getAllUsers() {
-    return this.prisma.user.findMany();
+    return this.prisma.user.findMany({ orderBy: { createdAt: 'desc' } });
   }
 }
