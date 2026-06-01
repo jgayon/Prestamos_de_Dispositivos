@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Body, Param, Inject, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Inject, Put, Delete, ValidationPipe } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { firstValueFrom } from 'rxjs';
+import { CreateDeviceDTO, UpdateDeviceStatusDTO } from './dto/create-device.dto';
 
 @Controller('devices')
 export class DevicesController {
@@ -9,9 +10,9 @@ export class DevicesController {
   ) {}
 
   @Post()
-  async create(@Body() data: any) {
+  async create(@Body(new ValidationPipe()) createDeviceDto: CreateDeviceDTO) {
     return await firstValueFrom(
-      this.client.send('create_device', data)
+      this.client.send('create_device', createDeviceDto)
     );
   }
 
@@ -37,9 +38,9 @@ export class DevicesController {
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() data: any) {
+  async update(@Param('id') id: string, @Body(new ValidationPipe()) updateDeviceDto: UpdateDeviceStatusDTO) {
     return await firstValueFrom(
-      this.client.send('update_device_status', { id, ...data })
+      this.client.send('update_device_status', { id, ...updateDeviceDto })
     );
   }
 

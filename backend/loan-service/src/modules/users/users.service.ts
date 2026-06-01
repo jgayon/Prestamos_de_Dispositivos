@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UsersRepository } from './users.repository';
 import { randomUUID } from 'crypto';
-import { NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class UsersService {

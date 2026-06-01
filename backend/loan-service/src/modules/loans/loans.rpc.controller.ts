@@ -23,7 +23,13 @@ export class LoansRpcController {
 
   @MessagePattern({ cmd: 'get_loans' })
   getLoans(@Payload() filters?: { status?: string; startDate?: string; endDate?: string }) {
-    return this.loansService.listLoans(filters);
+    // Convert string dates to Date objects
+    const convertedFilters = filters ? {
+      status: filters.status,
+      startDate: filters.startDate ? new Date(filters.startDate) : undefined,
+      endDate: filters.endDate ? new Date(filters.endDate) : undefined,
+    } : undefined;
+    return this.loansService.listLoans(convertedFilters);
   }
 
   @MessagePattern({ cmd: 'get_loan' })

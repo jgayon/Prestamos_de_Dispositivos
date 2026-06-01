@@ -3,8 +3,6 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { LoansController } from './loans.controller';
 import { LoansService } from './loans.service';
 import { LoanRepository } from './infrastructure/prisma/loan.repository';
-import { DevicesRepository } from '../devices/devices.repository';
-import { LoansRpcController } from './loans.rpc.controller';
 
 @Module({
   imports: [
@@ -15,11 +13,14 @@ import { LoansRpcController } from './loans.rpc.controller';
         options: {
           host: process.env.DEVICE_SERVICE_HOST || 'localhost',
           port: parseInt(process.env.DEVICE_SERVICE_PORT || '3002'),
+          retryAttempts: 3,
+          retryDelay: 1000,
+          timeout: 5000,
         },
       },
     ]),
   ],
-  controllers: [LoansController, LoansRpcController],
-  providers: [LoansService, LoanRepository, DevicesRepository]
+  controllers: [LoansController],
+  providers: [LoansService, LoanRepository]
 })
 export class LoansModule {}

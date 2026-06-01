@@ -4,7 +4,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { LoansModule } from './modules/loans/loans.module';
 import { UsersModule } from './modules/users/users.module';
-import { DevicesModule } from './modules/devices/devices.module';
 
 @Module({
   imports: [
@@ -16,13 +15,15 @@ import { DevicesModule } from './modules/devices/devices.module';
         options: {
           host: process.env.DEVICE_SERVICE_HOST || 'localhost',
           port: parseInt(process.env.DEVICE_SERVICE_PORT || '3002'),
+          retryAttempts: 3,
+          retryDelay: 1000,
+          timeout: 5000,
         },
       },
     ]),
     // Módulos de características
     LoansModule,
     UsersModule,
-    DevicesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

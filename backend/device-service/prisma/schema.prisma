@@ -9,11 +9,16 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url = "file:./dev.db"
+  url      = "file:./dev.db"
 }
 
 model Device {
-  id     String @id @default(uuid())
-  name   String
-  status String
+  id        String   @id @default(uuid())
+  name      String   // Validar en aplicación: 3-100 caracteres
+  status    String   @default("AVAILABLE")  // Validar en aplicación: AVAILABLE | LOANED | MAINTENANCE
+  createdAt DateTime @default(now())
+
+  // Índices para optimizar queries frecuentes
+  @@index([status])
+  @@index([createdAt])
 }
